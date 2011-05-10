@@ -10,9 +10,13 @@ INCLUDEPATH += /usr/local/include/PySide
 INCLUDEPATH += /usr/local/include/PySide/QtCore
 INCLUDEPATH += /usr/local/include/PySide/QtGui
 
+INCLUDEPATH += /usr/local/include/OGRE
+INCLUDEPATH += /media/z2/cpp/1105/Steel/Steel/include
+
 LIBS += -ldl -lpython2.6
 LIBS += -lpyside
 LIBS += -lshiboken
+LIBS += -l:/media/z2/cpp/1105/Steel/Debug/libSteel.so
 LIBS += -L.. -lQSteelWidget
 
 TARGET = ../PyQSteelWidget

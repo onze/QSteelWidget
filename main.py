@@ -4,6 +4,7 @@ sets up a dummy window with an empty steel widget in it.
 """
 
 import sys
+
 from PySide.QtCore import *
 from PySide.QtGui import *
 
@@ -16,6 +17,15 @@ a = QApplication(sys.argv)
 m=QMainWindow()
 m.setWindowTitle('QSteelWidget')
 m.resize(800,600)
+mw=QWidget()
+m.setCentralWidget(mw)
 m.show()
-m.setCentralWidget(QSteelWidget())
+l=QVBoxLayout()
+mw.setLayout(l)
+l.addWidget(QPushButton('b1'))
+if 0:
+    l.addWidget(QWidget())
+else:
+    l.addWidget(QSteelWidget())
+l.addWidget(QPushButton('b2'))
 a.exec_()

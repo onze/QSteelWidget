@@ -3,13 +3,9 @@
 	<name>QSteelWidget</name>
 	<comment></comment>
 	<projects>
+		<project>Steel</project>
 	</projects>
 	<buildSpec>
-		<buildCommand>
-			<name>org.python.pydev.PyDevBuilder</name>
-			<arguments>
-			</arguments>
-		</buildCommand>
 		<buildCommand>
 			<name>org.eclipse.cdt.managedbuilder.core.genmakebuilder</name>
 			<triggers>clean,full,incremental,</triggers>
@@ -66,6 +62,11 @@
 					<key>org.eclipse.cdt.make.core.useDefaultBuildCmd</key>
 					<value>true</value>
 				</dictionary>
+			</arguments>
+		</buildCommand>
+		<buildCommand>
+			<name>org.python.pydev.PyDevBuilder</name>
+			<arguments>
 			</arguments>
 		</buildCommand>
 		<buildCommand>
