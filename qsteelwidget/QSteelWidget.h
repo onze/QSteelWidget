@@ -47,7 +47,8 @@ public slots:
 protected:
 	Steel::Engine *mEngine;
 	float mCameraRotationDelta;
-	QPoint mLastMousePos;
+	QPoint mLastMousePos,mLastMousePressPos;
+
 
 };
 #endif // QtOgreWidget_H

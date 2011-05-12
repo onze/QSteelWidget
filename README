@@ -1,9 +1,10 @@
+QSteelWidget is a c++ Qt QWidget sublass that embed the Steel engine and offers methods to acces its API.
 
 == engine ==
 = mouse =
 
-The middle button moves the current camera:
-	- dragging the mouse while holding no key changes rotation TODO: around the selected object if any
-	TODO: - dragging the mouse while holding Alt changes the translation perpendicularly to the camera axis
-	TODO: - dragging the mouse while holding Ctrl changes the translation in parallelly to the ground (think that you grab the
+The middle button moves the current camera like in blender:
+	- dragging the mouse while holding no key changes rotation
+	- dragging the mouse while holding Shift translates the camera on a plan perpendicular to the camera axis
+	- dragging the mouse while holding Ctrl zooms in and out
 	ground, like in black & white)

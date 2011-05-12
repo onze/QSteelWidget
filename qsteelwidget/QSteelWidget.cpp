@@ -27,7 +27,7 @@ QSteelWidget::QSteelWidget(QWidget * parent) :
 	setAutoFillBackground(false);
 	setMinimumSize(320, 240);
 
-	mCameraRotationDelta = .35f*Ogre::Math::PI/180.f;
+	mCameraRotationDelta = .35f * Ogre::Math::PI / 180.f;
 }
 
 QSteelWidget::~QSteelWidget()
@@ -116,7 +116,7 @@ void QSteelWidget::initSteel()
 void QSteelWidget::mousePressEvent(QMouseEvent *e)
 {
 	cout << "QSteelWidget::mousePressEvent" << endl;
-	mLastMousePos = e->pos();
+	mLastMousePos = mLastMousePressPos = e->pos();
 
 }
 
@@ -130,10 +130,23 @@ void QSteelWidget::mouseReleaseEvent(QMouseEvent *e)
 void QSteelWidget::mouseMoveEvent(QMouseEvent *e)
 {
 	QPoint delta = e->pos() - mLastMousePos;
-	if (e->buttons().testFlag(Qt::MiddleButton))
+	if (e->buttons().testFlag(Qt::LeftButton))
 	{
-		mEngine->camera()->rotateAroundTarget(-mCameraRotationDelta * float(delta.x()));
-		mEngine->camera()->pitchAroundTarget(-mCameraRotationDelta * float(delta.y()));
+
+	}
+	else if (e->buttons().testFlag(Qt::MiddleButton))
+	{
+		if (e->modifiers().testFlag(Qt::ControlModifier))//zoom
+		{
+			cout<<float(e->y())/float(mLastMousePos.y())<<endl;
+			mEngine ->camera()->zoom(0.f, delta.y()/float(mLastMousePos.y()));
+		}
+		else //rotation
+
+		{
+			mEngine->camera()->rotateAroundTarget(-mCameraRotationDelta * float(delta.x()));
+			mEngine->camera()->pitchAroundTarget(-mCameraRotationDelta * float(delta.y()));
+		}
 	}
 	mLastMousePos = e->pos();
 }
