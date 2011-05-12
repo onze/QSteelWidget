@@ -12,29 +12,33 @@ using namespace std;
 #include <QtGui>
 #include <QX11Info>
 #include <QWidget>
-
+#include <OgreMath.h>
 #include <X11/Xlib.h>
+
+#include <Camera.h>
 
 #include "QSteelWidget.h"
 
 QSteelWidget::QSteelWidget(QWidget * parent) :
-	QWidget(parent), engine(0)
+	QWidget(parent), mEngine(0)
 {
-	cout << "QSteelWidget::QSteelWidget()" << endl;
 	setAttribute(Qt::WA_NoSystemBackground);
 	setAttribute(Qt::WA_OpaquePaintEvent);
+	setAutoFillBackground(false);
 	setMinimumSize(320, 240);
+
+	mCameraRotationDelta = .35f*Ogre::Math::PI/180.f;
 }
 
 QSteelWidget::~QSteelWidget()
 {
-	delete engine;
+	delete mEngine;
 }
 
 void QSteelWidget::showEvent(QShowEvent *e)
 {
 	QWidget::showEvent(e);
-	if (e->isAccepted() && !engine)
+	if (e->isAccepted() && !mEngine)
 	{
 		initSteel();
 	}
@@ -42,9 +46,8 @@ void QSteelWidget::showEvent(QShowEvent *e)
 
 void QSteelWidget::paintEvent(QPaintEvent *e)
 {
-
-	if (engine)
-		engine->update();
+	if (mEngine)
+		mEngine->update();
 	update();
 	e->accept();
 }
@@ -60,8 +63,8 @@ void QSteelWidget::moveEvent(QMoveEvent *e)
 
 	if (e->isAccepted())
 	{
-		if (engine)
-			engine->resizeWindow(width(), height());
+		if (mEngine)
+			mEngine->resizeWindow(width(), height());
 		update();
 	}
 }
@@ -70,18 +73,17 @@ void QSteelWidget::resizeEvent(QResizeEvent *e)
 {
 	QWidget::resizeEvent(e);
 
-	if (e->isAccepted() && engine)
+	if (e->isAccepted() && mEngine)
 	{
 		const QSize &newSize = e->size();
-		engine->resizeWindow(newSize.width(), newSize.height());
+		mEngine->resizeWindow(newSize.width(), newSize.height());
 		update();
 	}
 }
 
 void QSteelWidget::initSteel()
 {
-	cout << "QSteelWidget::initSteel()" << endl;
-	engine = new Steel::Engine();
+	mEngine = new Steel::Engine();
 
 #if defined(Q_WS_WIN) || defined(Q_WS_MAC)
 
@@ -107,5 +109,37 @@ void QSteelWidget::initSteel()
 
 #endif
 
-	engine->embeddedInit("plugins.cfg", widgetHandle.toStdString(), width(), height());
+	mEngine->embeddedInit("plugins.cfg", widgetHandle.toStdString(), width(), height());
+	mEngine->camera()->setMode(Steel::Camera::TARGET);
+}
+
+void QSteelWidget::mousePressEvent(QMouseEvent *e)
+{
+	cout << "QSteelWidget::mousePressEvent" << endl;
+	mLastMousePos = e->pos();
+
+}
+
+void QSteelWidget::mouseReleaseEvent(QMouseEvent *e)
+{
+	cout << "QSteelWidget::mouseReleaseEvent" << endl;
+	mLastMousePos = e->pos();
+
+}
+
+void QSteelWidget::mouseMoveEvent(QMouseEvent *e)
+{
+	QPoint delta = e->pos() - mLastMousePos;
+	if (e->buttons().testFlag(Qt::MiddleButton))
+	{
+		mEngine->camera()->rotateAroundTarget(-mCameraRotationDelta * float(delta.x()));
+		mEngine->camera()->pitchAroundTarget(-mCameraRotationDelta * float(delta.y()));
+	}
+	mLastMousePos = e->pos();
+}
+
+void QSteelWidget::wheelEvent(QWheelEvent *e)
+{
+	cout << "QSteelWidget::wheelEvent" << endl;
+
 }

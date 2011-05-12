@@ -1,0 +1,9 @@
+
+== engine ==
+= mouse =
+
+The middle button moves the current camera:
+	- dragging the mouse while holding no key changes rotation TODO: around the selected object if any
+	TODO: - dragging the mouse while holding Alt changes the translation perpendicularly to the camera axis
+	TODO: - dragging the mouse while holding Ctrl changes the translation in parallelly to the ground (think that you grab the
+	ground, like in black & white)

@@ -16,6 +16,8 @@ class QSteelWidget: public QWidget
 {
 Q_OBJECT
 public:
+
+
 	QSteelWidget(QWidget * parent = 0L);
 	virtual ~QSteelWidget();
 	/**
@@ -30,13 +32,22 @@ public:
 	virtual void paintEvent(QPaintEvent *e);
 	virtual QPaintEngine *paintEngine() const;
 	virtual void resizeEvent(QResizeEvent *e);
+
+public slots:
 	virtual void moveEvent(QMoveEvent *e);
+	virtual void mouseMoveEvent(QMouseEvent *e);
+	virtual void mousePressEvent(QMouseEvent *e);
+	virtual void mouseReleaseEvent(QMouseEvent *e);
+	virtual void wheelEvent(QWheelEvent *e);
 	/**
 	 * setup the engine.
 	 */
 	void initSteel();
 
 protected:
-	Steel::Engine *engine;
+	Steel::Engine *mEngine;
+	float mCameraRotationDelta;
+	QPoint mLastMousePos;
+
 };
 #endif // QtOgreWidget_H
