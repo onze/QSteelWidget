@@ -19,6 +19,22 @@ using namespace std;
 
 #include "QSteelWidget.h"
 
+class equals
+{
+public:
+	equals(int _v) :
+		v(_v)
+	{
+	}
+	;
+	bool operator()(const int& value)
+	{
+		return value == v;
+	}
+protected:
+	int v;
+};
+
 QSteelWidget::QSteelWidget(QWidget * parent) :
 	QWidget(parent), mEngine(0)
 {
@@ -27,7 +43,11 @@ QSteelWidget::QSteelWidget(QWidget * parent) :
 	setAutoFillBackground(false);
 	setMinimumSize(320, 240);
 
-	mCameraRotationDelta = .35f * Ogre::Math::PI / 180.f;
+	mKeysPressed = std::list<int>();
+
+	timer = new QTimer(this);
+	connect(timer, SIGNAL(timeout()), this, SLOT(engineModeUpdate()));
+
 }
 
 QSteelWidget::~QSteelWidget()
@@ -81,7 +101,7 @@ void QSteelWidget::resizeEvent(QResizeEvent *e)
 	}
 }
 
-void QSteelWidget::initSteel()
+void QSteelWidget::initSteel(void)
 {
 	mEngine = new Steel::Engine();
 
@@ -110,49 +130,138 @@ void QSteelWidget::initSteel()
 #endif
 
 	mEngine->embeddedInit("plugins.cfg", widgetHandle.toStdString(), width(), height());
-	mEngine->camera()->setMode(Steel::Camera::TARGET);
 }
 
 void QSteelWidget::mousePressEvent(QMouseEvent *e)
 {
-	cout << "QSteelWidget::mousePressEvent" << endl;
-	mLastMousePos = mLastMousePressPos = e->pos();
-
+	//to keep last
+	mLastMousePosition = e->pos();
 }
 
 void QSteelWidget::mouseReleaseEvent(QMouseEvent *e)
 {
-	cout << "QSteelWidget::mouseReleaseEvent" << endl;
-	mLastMousePos = e->pos();
+	//to keep last
+	mLastMousePosition = e->pos();
+}
 
+void QSteelWidget::mouseDoubleClickEvent(QMouseEvent *e)
+{
+	cout << "QSteelWidget::doubleClickEvent " << isInputGrabbed << endl;
+	if (isInputGrabbed)
+		stopEngineMode();// and start editor mode
+	else
+		startEngineMode();// and stop editor mode
+	//to keep last
+	mLastMousePosition = e->pos();
+}
+
+void QSteelWidget::startEngineMode(void)
+{
+	grabInputs();
+	timer->start(int(1000.f / 60));
+}
+
+void QSteelWidget::stopEngineMode()
+{
+	releaseInputs();
+	timer->stop();
+}
+
+void QSteelWidget::engineModeUpdate(void)
+{
+	float dx = .0f, dy = .0f, dz = .0f, speed = 2.f;
+//	cout << "keys: ";
+	for (list<int>::iterator it = mKeysPressed.begin(); it != mKeysPressed.end(); ++it)
+	{
+//		cout << *it << " ";
+		switch (*it)
+		{
+			case Qt::Key_W:
+				dz -= speed;
+				break;
+			case Qt::Key_A:
+				dx -= speed;
+				break;
+			case Qt::Key_S:
+				dz += speed;
+				break;
+			case Qt::Key_D:
+				dx += speed;
+				break;
+			case Qt::Key_Space:
+				dy += speed;
+				break;
+			case Qt::Key_Shift:
+				dy -= speed;
+				break;
+			case Qt::Key_Escape:
+				stopEngineMode();
+				break;
+			default:
+				break;
+		}
+	}
+//	cout << endl;
+	mEngine->camera()->translate(dx, dy, dz);
+
+}
+
+void QSteelWidget::grabInputs(void)
+{
+	isInputGrabbed = true;
+	grabMouse();
+	setCursor(QCursor(Qt::BlankCursor));
+	setMouseTracking(true);
+	grabKeyboard();
+
+}
+
+void QSteelWidget::releaseInputs(void)
+{
+	isInputGrabbed = false;
+	releaseMouse();
+	setCursor(QCursor(Qt::ArrowCursor));
+	setMouseTracking(false);
+	releaseKeyboard();
 }
 
 void QSteelWidget::mouseMoveEvent(QMouseEvent *e)
 {
-	QPoint delta = e->pos() - mLastMousePos;
-	if (e->buttons().testFlag(Qt::LeftButton))
+	QPoint move = e->pos() - mLastMousePosition;
+	cout << "QSteelWidget::mouseMoveEvent():" << " x:" << e->x() << " y:" << e->y() << " dx:" << move.x() << " dy:"
+			<< move.y() << endl;
+	if (isInputGrabbed)
 	{
-
+		mEngine->camera()->lookTowards(-float(move.y()), -float(move.x()), .0f, .1f);
+		QPoint newpos = QPoint(width() / 2, height() / 2);
+		QCursor::setPos(mapToGlobal(newpos));
+		mLastMousePosition = newpos;
 	}
-	else if (e->buttons().testFlag(Qt::MiddleButton))
+	else
 	{
-		if (e->modifiers().testFlag(Qt::ControlModifier))//zoom
-		{
-			cout<<float(e->y())/float(mLastMousePos.y())<<endl;
-			mEngine ->camera()->zoom(0.f, delta.y()/float(mLastMousePos.y()));
-		}
-		else //rotation
-
-		{
-			mEngine->camera()->rotateAroundTarget(-mCameraRotationDelta * float(delta.x()));
-			mEngine->camera()->pitchAroundTarget(-mCameraRotationDelta * float(delta.y()));
-		}
+		//to keep last
+		mLastMousePosition = e->pos();
 	}
-	mLastMousePos = e->pos();
+	mEngine->update();
 }
 
 void QSteelWidget::wheelEvent(QWheelEvent *e)
 {
-	cout << "QSteelWidget::wheelEvent" << endl;
-
+	//to keep last
+	mLastMousePosition = e->pos();
 }
+
+void QSteelWidget::keyPressEvent(QKeyEvent *e)
+{
+	if (isInputGrabbed)
+	{
+		mKeysPressed.push_front(e->key());
+		mKeysPressed.unique();
+	}
+}
+
+void QSteelWidget::keyReleaseEvent(QKeyEvent *e)
+{
+	mKeysPressed.remove_if(equals(e->key()));
+}
+

@@ -16,8 +16,6 @@ class QSteelWidget: public QWidget
 {
 Q_OBJECT
 public:
-
-
 	QSteelWidget(QWidget * parent = 0L);
 	virtual ~QSteelWidget();
 	/**
@@ -38,17 +36,48 @@ public slots:
 	virtual void mouseMoveEvent(QMouseEvent *e);
 	virtual void mousePressEvent(QMouseEvent *e);
 	virtual void mouseReleaseEvent(QMouseEvent *e);
+	virtual void keyPressEvent(QKeyEvent *e);
+	virtual void keyReleaseEvent(QKeyEvent *e);
+	virtual void mouseDoubleClickEvent(QMouseEvent *e);
 	virtual void wheelEvent(QWheelEvent *e);
+
+	/**
+	 * engine mode only.
+	 * this is called at regular interval to update the engine.
+	 */
+	void engineModeUpdate(void);
+
+protected:
+
 	/**
 	 * setup the engine.
 	 */
-	void initSteel();
+	void initSteel(void);
 
-protected:
+	/**
+	 * input is grabbed and dispatched to the engine.
+	 */
+	void startEngineMode(void);
+
+	/**
+	 * engine is on pause.
+	 */
+	void stopEngineMode(void);
+
+	/**
+	 * grab inputs (game mode)
+	 */
+	void grabInputs(void);
+
+	/**
+	 * release inputs /editor mode
+	 */
+	void releaseInputs(void);
 	Steel::Engine *mEngine;
-	float mCameraRotationDelta;
-	QPoint mLastMousePos,mLastMousePressPos;
-
+	bool isInputGrabbed;
+	QPoint mLastMousePosition;
+	QTimer *timer;
+	std::list<int> mKeysPressed;
 
 };
 #endif // QtOgreWidget_H
