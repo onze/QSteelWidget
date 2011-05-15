@@ -19,34 +19,13 @@ using namespace std;
 
 #include "QSteelWidget.h"
 
-class equals
-{
-public:
-	equals(int _v) :
-		v(_v)
-	{
-	}
-	;
-	bool operator()(const int& value)
-	{
-		return value == v;
-	}
-protected:
-	int v;
-};
-
 QSteelWidget::QSteelWidget(QWidget * parent) :
-	QWidget(parent), mEngine(0)
+	QWidget(parent), mEngine(0), mIsInputGrabbed(false), mTimer(0)
 {
 	setAttribute(Qt::WA_NoSystemBackground);
 	setAttribute(Qt::WA_OpaquePaintEvent);
 	setAutoFillBackground(false);
 	setMinimumSize(320, 240);
-
-	mKeysPressed = std::list<int>();
-
-	timer = new QTimer(this);
-	connect(timer, SIGNAL(timeout()), this, SLOT(engineModeUpdate()));
 
 }
 
@@ -68,7 +47,6 @@ void QSteelWidget::paintEvent(QPaintEvent *e)
 {
 	if (mEngine)
 		mEngine->update();
-	update();
 	e->accept();
 }
 
@@ -134,81 +112,105 @@ void QSteelWidget::initSteel(void)
 
 void QSteelWidget::mousePressEvent(QMouseEvent *e)
 {
-	//to keep last
+	if (mIsInputGrabbed)
+	{
+		//to keep last
+		OIS::MouseEvent evt = qtToOisMouseEvent(e);
+		OIS::MouseButtonID btn = OIS::MB_Left;
+		switch (e->button())
+		{
+			case Qt::LeftButton:
+				btn = OIS::MB_Left;
+				break;
+			case Qt::MiddleButton:
+				btn = OIS::MB_Middle;
+				break;
+			case Qt::RightButton:
+				btn = OIS::MB_Right;
+				break;
+			default:
+				e->accept();
+				return;
+		}
+		mEngine->inputMan()->mousePressed(evt, btn);
+	}
 	mLastMousePosition = e->pos();
+	e->accept();
 }
 
 void QSteelWidget::mouseReleaseEvent(QMouseEvent *e)
 {
-	//to keep last
+	if (mIsInputGrabbed)
+	{
+		//to keep last
+		OIS::MouseEvent evt = qtToOisMouseEvent(e);
+		OIS::MouseButtonID btn = OIS::MB_Left;
+		switch (e->button())
+		{
+			case Qt::LeftButton:
+				btn = OIS::MB_Left;
+				break;
+			case Qt::MiddleButton:
+				btn = OIS::MB_Middle;
+				break;
+			case Qt::RightButton:
+				btn = OIS::MB_Right;
+				break;
+			default:
+				e->accept();
+				return;
+		}
+		mEngine->inputMan()->mouseReleased(evt, btn);
+	}
 	mLastMousePosition = e->pos();
+	e->accept();
 }
 
 void QSteelWidget::mouseDoubleClickEvent(QMouseEvent *e)
 {
-	cout << "QSteelWidget::doubleClickEvent " << isInputGrabbed << endl;
-	if (isInputGrabbed)
+	cout << endl << "QSteelWidget::doubleClickEvent " << mIsInputGrabbed << endl;
+	if (mIsInputGrabbed)
 		stopEngineMode();// and start editor mode
 	else
 		startEngineMode();// and stop editor mode
+
 	//to keep last
 	mLastMousePosition = e->pos();
+	e->accept();
 }
 
 void QSteelWidget::startEngineMode(void)
 {
+	if (mIsInputGrabbed)
+		return;
 	grabInputs();
-	timer->start(int(1000.f / 60));
+	//OIS being screwed up by Qt, we have to manually grab mouse and keyboard and
+	//forward their events to the engine's inputManager.
+	//	mEngine->grabInputs();
+	mTimer = new QTimer(this);
+	connect(mTimer, SIGNAL(timeout()), this, SLOT(engineModeUpdate()));
+	mTimer->start(int(1000.f / 60.f));
 }
 
 void QSteelWidget::stopEngineMode()
 {
+	if (!mIsInputGrabbed)
+		return;
 	releaseInputs();
-	timer->stop();
+	//	mEngine->releaseInputs();
+	mTimer->stop();
+	disconnect(mTimer, SIGNAL(timeout()), this, SLOT(engineModeUpdate()));
+	delete mTimer;
 }
 
 void QSteelWidget::engineModeUpdate(void)
 {
-	float dx = .0f, dy = .0f, dz = .0f, speed = 2.f;
-//	cout << "keys: ";
-	for (list<int>::iterator it = mKeysPressed.begin(); it != mKeysPressed.end(); ++it)
-	{
-//		cout << *it << " ";
-		switch (*it)
-		{
-			case Qt::Key_W:
-				dz -= speed;
-				break;
-			case Qt::Key_A:
-				dx -= speed;
-				break;
-			case Qt::Key_S:
-				dz += speed;
-				break;
-			case Qt::Key_D:
-				dx += speed;
-				break;
-			case Qt::Key_Space:
-				dy += speed;
-				break;
-			case Qt::Key_Shift:
-				dy -= speed;
-				break;
-			case Qt::Key_Escape:
-				stopEngineMode();
-				break;
-			default:
-				break;
-		}
-	}
-//	cout << endl;
-	mEngine->camera()->translate(dx, dy, dz);
-
+	mEngine->update();
 }
 
 void QSteelWidget::grabInputs(void)
 {
-	isInputGrabbed = true;
+	mIsInputGrabbed = true;
 	grabMouse();
 	setCursor(QCursor(Qt::BlankCursor));
 	setMouseTracking(true);
@@ -218,11 +220,26 @@ void QSteelWidget::grabInputs(void)
 
 void QSteelWidget::releaseInputs(void)
 {
-	isInputGrabbed = false;
+	mIsInputGrabbed = false;
 	releaseMouse();
 	setCursor(QCursor(Qt::ArrowCursor));
 	setMouseTracking(false);
 	releaseKeyboard();
+}
+
+OIS::MouseEvent QSteelWidget::qtToOisMouseEvent(QMouseEvent *e)
+{
+	QPoint move = e->pos() - mLastMousePosition;
+	OIS::MouseState ms = OIS::MouseState();
+	ms.X.rel = move.x();
+	ms.Y.rel = move.y();
+
+	QPoint abspos=mapToGlobal(e->pos());
+	ms.X.abs = abspos.x();
+	ms.Y.abs = abspos.y();
+
+	OIS::MouseEvent evt = OIS::MouseEvent(mEngine->inputMan()->mouse(), ms);
+	return evt;
 }
 
 void QSteelWidget::mouseMoveEvent(QMouseEvent *e)
@@ -230,19 +247,22 @@ void QSteelWidget::mouseMoveEvent(QMouseEvent *e)
 	QPoint move = e->pos() - mLastMousePosition;
 	cout << "QSteelWidget::mouseMoveEvent():" << " x:" << e->x() << " y:" << e->y() << " dx:" << move.x() << " dy:"
 			<< move.y() << endl;
-	if (isInputGrabbed)
+	if (mIsInputGrabbed)
 	{
-		mEngine->camera()->lookTowards(-float(move.y()), -float(move.x()), .0f, .1f);
-		QPoint newpos = QPoint(width() / 2, height() / 2);
-		QCursor::setPos(mapToGlobal(newpos));
-		mLastMousePosition = newpos;
+		OIS::MouseEvent evt = qtToOisMouseEvent(e);
+		mEngine->inputMan()->mouseMoved(evt);
+
+		QPoint pos(min(max(0, e->x()), width()), min(max(0, e->y()), height()));
+		QCursor::setPos(mapToGlobal(pos));
+
+		mLastMousePosition = pos;
 	}
 	else
 	{
 		//to keep last
 		mLastMousePosition = e->pos();
 	}
-	mEngine->update();
+	e->accept();
 }
 
 void QSteelWidget::wheelEvent(QWheelEvent *e)
@@ -250,18 +270,51 @@ void QSteelWidget::wheelEvent(QWheelEvent *e)
 	//to keep last
 	mLastMousePosition = e->pos();
 }
+OIS::KeyEvent QSteelWidget::qtToOisKeyEvent(QKeyEvent *e)
+{
+	OIS::KeyCode keycode = OIS::KC_ESCAPE;
+	switch (e->key())
+	{
+		case Qt::Key_W:
+			keycode = OIS::KC_W;
+			break;
+		case Qt::Key_A:
+			keycode = OIS::KC_A;
+			break;
+		case Qt::Key_S:
+			keycode = OIS::KC_S;
+			break;
+		case Qt::Key_D:
+			keycode = OIS::KC_D;
+			break;
+		case Qt::Key_Space:
+			keycode = OIS::KC_SPACE;
+			break;
+		case Qt::Key_Shift:
+			keycode = OIS::KC_LSHIFT;
+			break;
+		case Qt::Key_Escape:
+			stopEngineMode();
+			keycode = OIS::KC_ESCAPE;
+			break;
+		default:
+			break;
+	}
+	OIS::KeyEvent evt(mEngine->inputMan()->keyboard(), keycode, 0);
+	return evt;
+}
 
 void QSteelWidget::keyPressEvent(QKeyEvent *e)
 {
-	if (isInputGrabbed)
-	{
-		mKeysPressed.push_front(e->key());
-		mKeysPressed.unique();
-	}
+	e->accept();
+	OIS::KeyEvent evt = qtToOisKeyEvent(e);
+	mEngine->inputMan()->keyPressed(evt);
 }
 
 void QSteelWidget::keyReleaseEvent(QKeyEvent *e)
 {
-	mKeysPressed.remove_if(equals(e->key()));
+	e->accept();
+	OIS::KeyEvent evt = qtToOisKeyEvent(e);
+	mEngine->inputMan()->keyReleased(evt);
 }
 

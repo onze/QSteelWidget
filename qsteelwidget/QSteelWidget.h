@@ -48,7 +48,8 @@ public slots:
 	void engineModeUpdate(void);
 
 protected:
-
+	OIS::MouseEvent qtToOisMouseEvent(QMouseEvent *e);
+	OIS::KeyEvent qtToOisKeyEvent(QKeyEvent *e);
 	/**
 	 * setup the engine.
 	 */
@@ -74,10 +75,9 @@ protected:
 	 */
 	void releaseInputs(void);
 	Steel::Engine *mEngine;
-	bool isInputGrabbed;
+	bool mIsInputGrabbed;
 	QPoint mLastMousePosition;
-	QTimer *timer;
-	std::list<int> mKeysPressed;
+	QTimer *mTimer;
 
 };
 #endif // QtOgreWidget_H
