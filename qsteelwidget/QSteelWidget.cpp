@@ -46,7 +46,7 @@ void QSteelWidget::showEvent(QShowEvent *e)
 void QSteelWidget::paintEvent(QPaintEvent *e)
 {
 	if (mEngine)
-		mEngine->update();
+		mEngine->redraw();
 	e->accept();
 }
 
@@ -168,7 +168,6 @@ void QSteelWidget::mouseReleaseEvent(QMouseEvent *e)
 
 void QSteelWidget::mouseDoubleClickEvent(QMouseEvent *e)
 {
-	cout << endl << "QSteelWidget::doubleClickEvent " << mIsInputGrabbed << endl;
 	if (mIsInputGrabbed)
 		stopEngineMode();// and start editor mode
 	else
@@ -189,7 +188,7 @@ void QSteelWidget::startEngineMode(void)
 	//	mEngine->grabInputs();
 	mTimer = new QTimer(this);
 	connect(mTimer, SIGNAL(timeout()), this, SLOT(engineModeUpdate()));
-	mTimer->start(int(1000.f / 60.f));
+	mTimer->start(1000.f/60.f);
 }
 
 void QSteelWidget::stopEngineMode()
@@ -197,6 +196,7 @@ void QSteelWidget::stopEngineMode()
 	if (!mIsInputGrabbed)
 		return;
 	releaseInputs();
+	mEngine->abortMainLoop();
 	//	mEngine->releaseInputs();
 	mTimer->stop();
 	disconnect(mTimer, SIGNAL(timeout()), this, SLOT(engineModeUpdate()));
@@ -205,7 +205,8 @@ void QSteelWidget::stopEngineMode()
 
 void QSteelWidget::engineModeUpdate(void)
 {
-	mEngine->update();
+	if(!mEngine->mainLoop(true))
+		stopEngineMode();
 }
 
 void QSteelWidget::grabInputs(void)
@@ -245,8 +246,7 @@ OIS::MouseEvent QSteelWidget::qtToOisMouseEvent(QMouseEvent *e)
 void QSteelWidget::mouseMoveEvent(QMouseEvent *e)
 {
 	QPoint move = e->pos() - mLastMousePosition;
-	cout << "QSteelWidget::mouseMoveEvent():" << " x:" << e->x() << " y:" << e->y() << " dx:" << move.x() << " dy:"
-			<< move.y() << endl;
+
 	if (mIsInputGrabbed)
 	{
 		OIS::MouseEvent evt = qtToOisMouseEvent(e);
@@ -294,7 +294,6 @@ OIS::KeyEvent QSteelWidget::qtToOisKeyEvent(QKeyEvent *e)
 			keycode = OIS::KC_LSHIFT;
 			break;
 		case Qt::Key_Escape:
-			stopEngineMode();
 			keycode = OIS::KC_ESCAPE;
 			break;
 		default:
@@ -306,15 +305,17 @@ OIS::KeyEvent QSteelWidget::qtToOisKeyEvent(QKeyEvent *e)
 
 void QSteelWidget::keyPressEvent(QKeyEvent *e)
 {
-	e->accept();
+//	cout<<"QSteelWidget::keyPressEvent"<<endl;
 	OIS::KeyEvent evt = qtToOisKeyEvent(e);
 	mEngine->inputMan()->keyPressed(evt);
+	e->accept();
 }
 
 void QSteelWidget::keyReleaseEvent(QKeyEvent *e)
 {
-	e->accept();
+//	cout<<"QSteelWidget::keyReleaseEvent"<<endl;
 	OIS::KeyEvent evt = qtToOisKeyEvent(e);
 	mEngine->inputMan()->keyReleased(evt);
+	e->accept();
 }
 
