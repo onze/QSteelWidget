@@ -9,10 +9,11 @@
 #define QSteelWidget_H
 
 #include <QWidget>
+#include <OgreLog.h>
 
 #include <Engine.h>
 
-class QSteelWidget: public QWidget
+class QSteelWidget: public QWidget,Ogre::LogListener
 {
 Q_OBJECT
 public:
@@ -30,7 +31,13 @@ public:
 	virtual void paintEvent(QPaintEvent *e);
 	virtual QPaintEngine *paintEngine() const;
 	virtual void resizeEvent(QResizeEvent *e);
-
+	virtual void dragEnterEvent(QDragEnterEvent *e);
+	virtual void dragMoveEvent(QDragMoveEvent *e);
+	virtual void dropEvent(QDropEvent *e);
+	virtual void messageLogged(	const Ogre::String &message,
+								Ogre::LogMessageLevel lml,
+								bool maskDebug,
+								const Ogre::String &logName);
 public slots:
 	virtual void moveEvent(QMoveEvent *e);
 	virtual void mouseMoveEvent(QMouseEvent *e);
@@ -47,6 +54,9 @@ public slots:
 	 */
 	void engineModeUpdate(void);
 
+	signals:
+	void onNewLogLine(QString line);
+//	void onNewLogLine();
 protected:
 	OIS::MouseEvent qtToOisMouseEvent(QMouseEvent *e);
 	OIS::KeyEvent qtToOisKeyEvent(QKeyEvent *e);

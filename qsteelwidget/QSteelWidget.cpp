@@ -13,6 +13,7 @@ using namespace std;
 #include <QX11Info>
 #include <QWidget>
 #include <OgreMath.h>
+#include <OgreLogManager.h>
 #include <X11/Xlib.h>
 
 #include <Camera.h>
@@ -27,6 +28,8 @@ QSteelWidget::QSteelWidget(QWidget * parent) :
 	setAutoFillBackground(false);
 	setMinimumSize(320, 240);
 
+	setAcceptDrops(true);
+
 }
 
 QSteelWidget::~QSteelWidget()
@@ -34,12 +37,41 @@ QSteelWidget::~QSteelWidget()
 	delete mEngine;
 }
 
+void QSteelWidget::messageLogged(	const Ogre::String &message,
+									Ogre::LogMessageLevel lml,
+									bool maskDebug,
+									const Ogre::String &logName)
+{
+	emit onNewLogLine(QString(message.c_str()));
+}
+
+void QSteelWidget::dragEnterEvent(QDragEnterEvent *e)
+{
+	cout << "QSteelWidget::dragEnterEvent:" << e->mimeData()->text().toStdString() << endl;
+	e->setAccepted(true);
+}
+
+void QSteelWidget::dragMoveEvent(QDragMoveEvent *e)
+{
+	cout << "c++ QSteelWidget::dragMoveEvent:" << e->mimeData()->text().toStdString() << endl;
+	e->setAccepted(true);
+}
+
+void QSteelWidget::dropEvent(QDropEvent *e)
+{
+	cout << "QSteelWidget::DropEvent: " << e->mimeData()->formats()[0].toStdString() << endl;
+	e->setAccepted(true);
+}
+
 void QSteelWidget::showEvent(QShowEvent *e)
 {
 	QWidget::showEvent(e);
-	if (e->isAccepted() && !mEngine)
+	if (e->isAccepted())
 	{
-		initSteel();
+		if (mEngine)
+			mEngine->redraw();
+		else
+			initSteel();
 	}
 }
 
@@ -81,6 +113,9 @@ void QSteelWidget::resizeEvent(QResizeEvent *e)
 
 void QSteelWidget::initSteel(void)
 {
+	Ogre::Log *defaultLog = (new Ogre::LogManager())->createLog("ogre_log.log", true, false, true);
+	defaultLog->addListener(this);
+
 	mEngine = new Steel::Engine();
 
 #if defined(Q_WS_WIN) || defined(Q_WS_MAC)
@@ -107,7 +142,7 @@ void QSteelWidget::initSteel(void)
 
 #endif
 
-	mEngine->embeddedInit("plugins.cfg", widgetHandle.toStdString(), width(), height());
+	mEngine->embeddedInit("plugins.cfg", widgetHandle.toStdString(), width(), height(), defaultLog->getName());
 }
 
 void QSteelWidget::mousePressEvent(QMouseEvent *e)
@@ -188,7 +223,7 @@ void QSteelWidget::startEngineMode(void)
 	//	mEngine->grabInputs();
 	mTimer = new QTimer(this);
 	connect(mTimer, SIGNAL(timeout()), this, SLOT(engineModeUpdate()));
-	mTimer->start(1000.f/60.f);
+	mTimer->start(1000.f / 60.f);
 }
 
 void QSteelWidget::stopEngineMode()
@@ -205,7 +240,7 @@ void QSteelWidget::stopEngineMode()
 
 void QSteelWidget::engineModeUpdate(void)
 {
-	if(!mEngine->mainLoop(true))
+	if (!mEngine->mainLoop(true))
 		stopEngineMode();
 }
 
@@ -235,7 +270,7 @@ OIS::MouseEvent QSteelWidget::qtToOisMouseEvent(QMouseEvent *e)
 	ms.X.rel = move.x();
 	ms.Y.rel = move.y();
 
-	QPoint abspos=mapToGlobal(e->pos());
+	QPoint abspos = mapToGlobal(e->pos());
 	ms.X.abs = abspos.x();
 	ms.Y.abs = abspos.y();
 
@@ -305,7 +340,7 @@ OIS::KeyEvent QSteelWidget::qtToOisKeyEvent(QKeyEvent *e)
 
 void QSteelWidget::keyPressEvent(QKeyEvent *e)
 {
-//	cout<<"QSteelWidget::keyPressEvent"<<endl;
+	//	cout<<"QSteelWidget::keyPressEvent"<<endl;
 	OIS::KeyEvent evt = qtToOisKeyEvent(e);
 	mEngine->inputMan()->keyPressed(evt);
 	e->accept();
@@ -313,7 +348,7 @@ void QSteelWidget::keyPressEvent(QKeyEvent *e)
 
 void QSteelWidget::keyReleaseEvent(QKeyEvent *e)
 {
-//	cout<<"QSteelWidget::keyReleaseEvent"<<endl;
+	//	cout<<"QSteelWidget::keyReleaseEvent"<<endl;
 	OIS::KeyEvent evt = qtToOisKeyEvent(e);
 	mEngine->inputMan()->keyReleased(evt);
 	e->accept();
