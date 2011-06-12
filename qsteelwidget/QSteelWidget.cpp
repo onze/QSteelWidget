@@ -16,12 +16,15 @@ using namespace std;
 #include <OgreLogManager.h>
 #include <X11/Xlib.h>
 
-#include <Camera.h>
-
 #include "QSteelWidget.h"
 
+#include "QtOgreConversions.h"
+
+#include "unittests.h"
+
 QSteelWidget::QSteelWidget(QWidget * parent) :
-	QWidget(parent), mEngine(0), mIsInputGrabbed(false), mTimer(0)
+	QWidget(parent), mIsSteelReady(false), mEngine(0), mIsInputGrabbed(false), mTimer(0), mLevelName(""),
+			mProjectRootdir("./")
 {
 	setAttribute(Qt::WA_NoSystemBackground);
 	setAttribute(Qt::WA_OpaquePaintEvent);
@@ -30,89 +33,127 @@ QSteelWidget::QSteelWidget(QWidget * parent) :
 
 	setAcceptDrops(true);
 
+	unitMain();
 }
 
 QSteelWidget::~QSteelWidget()
 {
-	delete mEngine;
+	if (mEngine)
+	{
+		mEngine->shutdown();
+		delete mEngine;
+	}
 }
 
-void QSteelWidget::messageLogged(	const Ogre::String &message,
-									Ogre::LogMessageLevel lml,
-									bool maskDebug,
-									const Ogre::String &logName)
+unsigned long QSteelWidget::addInanimate(QString meshName, QVector3D pos, QVector4D rot)
 {
-	emit onNewLogLine(QString(message.c_str()));
+	quickLog("QSteelWidget::drop_inanimate(meshName=" + meshName + " dropTargetDist="
+			+ QString("(%1, %2, %3)").arg(pos.x()).arg(pos.y()).arg(pos.z()));
+	if (mLevel == NULL)
+	{
+		quickLog("mLevel == NULL !");
+		return 0L;
+	}
+	Ogre::Quaternion r = mEngine->camera()->camNode()->getOrientation();
+	if(r!=convert(rot))
+	{
+		cout<<"blem !"
+				<<"cam quat:"<<Ogre::StringConverter::toString(r)
+				<<" -> as vec4: "
+				<<toString(convert(r))<<endl
+				<<"given vec4:"
+				<<toString(rot)
+				<<" -> as quat: "<<Ogre::StringConverter::toString(convert(rot))<<endl;
+	}
+	unsigned long id = mLevel->createInanimate(q2o_string(meshName), convert(pos), convert(rot));
+	update();
+	return id;
+}
+
+QVector3D QSteelWidget::dropTargetPosition(QVector3D delta)
+{
+	if (mEngine == NULL)
+		return QVector3D();
+	Ogre::Vector3 pos = mEngine->camera()->camNode()->getPosition();
+	pos += mEngine->camera()->camNode()->getOrientation() * convert(delta);
+	return convert(pos);
+}
+
+QVector4D QSteelWidget::dropTargetRotation()
+{
+	return convert(mEngine->camera()->camNode()->getOrientation());
+}
+
+void QSteelWidget::closeEvent(QCloseEvent *e)
+{
+	if (mEngine)
+		mEngine->shutdown();
+	e->accept();
 }
 
 void QSteelWidget::dragEnterEvent(QDragEnterEvent *e)
 {
-	cout << "QSteelWidget::dragEnterEvent:" << e->mimeData()->text().toStdString() << endl;
 	e->setAccepted(true);
 }
 
 void QSteelWidget::dragMoveEvent(QDragMoveEvent *e)
 {
-	cout << "c++ QSteelWidget::dragMoveEvent:" << e->mimeData()->text().toStdString() << endl;
 	e->setAccepted(true);
 }
 
 void QSteelWidget::dropEvent(QDropEvent *e)
 {
-	cout << "QSteelWidget::DropEvent: " << e->mimeData()->formats()[0].toStdString() << endl;
+	if (e->mimeData()->hasUrls())
+	{
+		QList<QUrl> urlList = e->mimeData()->urls();
+		if (urlList.size() > 0)
+		{
+			quickLog(Ogre::String(urlList[0].toString().toStdString()));
+			emit onItemDropped(QString(urlList[0].toString().toStdString().c_str()));
+		}
+	}
 	e->setAccepted(true);
 }
 
-void QSteelWidget::showEvent(QShowEvent *e)
+void QSteelWidget::engineModeUpdate(void)
 {
-	QWidget::showEvent(e);
-	if (e->isAccepted())
+	if (!mEngine->mainLoop(true))
+		stopEngineMode();
+}
+
+void QSteelWidget::grabInputs(void)
+{
+	mIsInputGrabbed = true;
+	grabMouse();
+	setCursor(QCursor(Qt::BlankCursor));
+	setMouseTracking(true);
+	grabKeyboard();
+
+}
+
+QVector3D QSteelWidget::inanimatePosition(unsigned long id)
+{
+	if (mLevel == NULL)
 	{
-		if (mEngine)
-			mEngine->redraw();
-		else
-			initSteel();
+		quickLog("QSteelWidget::inanimatePosition(): no level loaded.");
+		return QVector3D();
 	}
-}
-
-void QSteelWidget::paintEvent(QPaintEvent *e)
-{
-	if (mEngine)
-		mEngine->redraw();
-	e->accept();
-}
-
-QPaintEngine *QSteelWidget::paintEngine() const
-{
-	return 0;
-}
-
-void QSteelWidget::moveEvent(QMoveEvent *e)
-{
-	QWidget::moveEvent(e);
-
-	if (e->isAccepted())
+	Steel::Inanimate *ina = mLevel->getInanimate(id);
+	if (ina == NULL)
 	{
-		if (mEngine)
-			mEngine->resizeWindow(width(), height());
-		update();
+		quickLog("QSteelWidget::inanimatePosition(): no inanimate for id " + QString::number(id) + ".");
+		return QVector3D();
 	}
+	//TODO: return a Descriptor instead ?
+	//	Ogre::Vector3 oPos=ina->node()->getPosition();
+	//	QVector3D qPos(oPos.x,oPos.y,oPos.z);
+	//	return qPos;
+	return convert(ina->node()->getPosition());
 }
 
-void QSteelWidget::resizeEvent(QResizeEvent *e)
+void QSteelWidget::initSteel()
 {
-	QWidget::resizeEvent(e);
-
-	if (e->isAccepted() && mEngine)
-	{
-		const QSize &newSize = e->size();
-		mEngine->resizeWindow(newSize.width(), newSize.height());
-		update();
-	}
-}
-
-void QSteelWidget::initSteel(void)
-{
+	cout << "QSteelWidget::initSteel()" << endl;
 	Ogre::Log *defaultLog = (new Ogre::LogManager())->createLog("ogre_log.log", true, false, true);
 	defaultLog->addListener(this);
 
@@ -137,12 +178,77 @@ void QSteelWidget::initSteel(void)
 	//screen/server. You can delay creation of the ogre window until the first paint event, since the window will have
 	//been completely initialised by then. Alternativly you can create a function to create the renderwindow, and
 	//manually XMapWindow yourself before creating the ogre window.
-	//read here for more explanations: http://www.ogre3d.org/forums/viewtopic.php?f=2&p=311635#p311635
+	//read here for more: http://www.ogre3d.org/forums/viewtopic.php?f=2&p=311635#p311635
 	XSync(xInfo.display(), False);
 
 #endif
 
 	mEngine->embeddedInit("plugins.cfg", widgetHandle.toStdString(), width(), height(), defaultLog->getName());
+	defaultLog->logMessage("steel widget ready.");
+	if (!(mProjectRootdir == "./" && mLevelName == ""))
+		setLevel(QString(mProjectRootdir.c_str()), QString(mLevelName.c_str()));
+	mIsSteelReady = true;
+	emit onSteelReady();
+}
+
+void QSteelWidget::keyPressEvent(QKeyEvent *e)
+{
+	//	cout<<"QSteelWidget::keyPressEvent"<<endl;
+	OIS::KeyEvent evt = qtToOisKeyEvent(e);
+	mEngine->inputMan()->keyPressed(evt);
+	e->accept();
+}
+
+void QSteelWidget::keyReleaseEvent(QKeyEvent *e)
+{
+	//	cout<<"QSteelWidget::keyReleaseEvent"<<endl;
+	OIS::KeyEvent evt = qtToOisKeyEvent(e);
+	mEngine->inputMan()->keyReleased(evt);
+	e->accept();
+}
+
+void QSteelWidget::messageLogged(	const Ogre::String &message,
+									Ogre::LogMessageLevel lml,
+									bool maskDebug,
+									const Ogre::String &logName)
+{
+	emit onNewLogLine(QString(message.c_str()));
+}
+
+void QSteelWidget::moveEvent(QMoveEvent *e)
+{
+	QWidget::moveEvent(e);
+
+	if (e->isAccepted())
+	{
+		if (mEngine)
+			mEngine->resizeWindow(width(), height());
+		update();
+	}
+}
+
+void QSteelWidget::paintEvent(QPaintEvent *e)
+{
+	if (mEngine)
+		mEngine->redraw();
+	e->accept();
+}
+
+QPaintEngine *QSteelWidget::paintEngine() const
+{
+	return 0;
+}
+
+void QSteelWidget::resizeEvent(QResizeEvent *e)
+{
+	QWidget::resizeEvent(e);
+
+	if (e->isAccepted() && mEngine)
+	{
+		const QSize &newSize = e->size();
+		mEngine->resizeWindow(newSize.width(), newSize.height());
+		update();
+	}
 }
 
 void QSteelWidget::mousePressEvent(QMouseEvent *e)
@@ -213,6 +319,82 @@ void QSteelWidget::mouseDoubleClickEvent(QMouseEvent *e)
 	e->accept();
 }
 
+void QSteelWidget::mouseMoveEvent(QMouseEvent *e)
+{
+	QPoint move = e->pos() - mLastMousePosition;
+
+	if (mIsInputGrabbed)
+	{
+		OIS::MouseEvent evt = qtToOisMouseEvent(e);
+		mEngine->inputMan()->mouseMoved(evt);
+
+		QPoint pos(min(max(0, e->x()), width()), min(max(0, e->y()), height()));
+		QCursor::setPos(mapToGlobal(pos));
+
+		mLastMousePosition = pos;
+	}
+	else
+	{
+		//to keep last
+		mLastMousePosition = e->pos();
+	}
+	e->accept();
+}
+
+OIS::MouseEvent QSteelWidget::qtToOisMouseEvent(QMouseEvent *e)
+{
+	QPoint move = e->pos() - mLastMousePosition;
+	OIS::MouseState ms = OIS::MouseState();
+	ms.X.rel = move.x();
+	ms.Y.rel = move.y();
+
+	QPoint abspos = mapToGlobal(e->pos());
+	ms.X.abs = abspos.x();
+	ms.Y.abs = abspos.y();
+
+	OIS::MouseEvent evt = OIS::MouseEvent(mEngine->inputMan()->mouse(), ms);
+	return evt;
+}
+
+void QSteelWidget::releaseInputs(void)
+{
+	mIsInputGrabbed = false;
+	releaseMouse();
+	setCursor(QCursor(Qt::ArrowCursor));
+	setMouseTracking(false);
+	releaseKeyboard();
+}
+
+void QSteelWidget::setLevel(QString projectRootdir, QString levelName)
+{
+	cout
+			<< (("QSteelWidget::setLevel(projectRootdir:" + projectRootdir + ", levelName=" + levelName + ")").toStdString())
+			<< endl;
+	mProjectRootdir = Ogre::String(projectRootdir.toStdString().c_str());
+	mLevelName = Ogre::String(levelName.toStdString().c_str());
+	if (mEngine)
+	{
+		mEngine->setRootdir(Ogre::String(projectRootdir.toStdString().c_str()));
+		mLevel = mEngine->createLevel(Ogre::String(levelName.toStdString().c_str()));
+	}
+	else
+	{
+		cout << "WARNING: there's no engine yet." << endl;
+	}
+}
+
+void QSteelWidget::showEvent(QShowEvent *e)
+{
+	QWidget::showEvent(e);
+	if (e->isAccepted())
+	{
+		if (mEngine)
+			mEngine->redraw();
+		else
+			initSteel();
+	}
+}
+
 void QSteelWidget::startEngineMode(void)
 {
 	if (mIsInputGrabbed)
@@ -236,68 +418,6 @@ void QSteelWidget::stopEngineMode()
 	mTimer->stop();
 	disconnect(mTimer, SIGNAL(timeout()), this, SLOT(engineModeUpdate()));
 	delete mTimer;
-}
-
-void QSteelWidget::engineModeUpdate(void)
-{
-	if (!mEngine->mainLoop(true))
-		stopEngineMode();
-}
-
-void QSteelWidget::grabInputs(void)
-{
-	mIsInputGrabbed = true;
-	grabMouse();
-	setCursor(QCursor(Qt::BlankCursor));
-	setMouseTracking(true);
-	grabKeyboard();
-
-}
-
-void QSteelWidget::releaseInputs(void)
-{
-	mIsInputGrabbed = false;
-	releaseMouse();
-	setCursor(QCursor(Qt::ArrowCursor));
-	setMouseTracking(false);
-	releaseKeyboard();
-}
-
-OIS::MouseEvent QSteelWidget::qtToOisMouseEvent(QMouseEvent *e)
-{
-	QPoint move = e->pos() - mLastMousePosition;
-	OIS::MouseState ms = OIS::MouseState();
-	ms.X.rel = move.x();
-	ms.Y.rel = move.y();
-
-	QPoint abspos = mapToGlobal(e->pos());
-	ms.X.abs = abspos.x();
-	ms.Y.abs = abspos.y();
-
-	OIS::MouseEvent evt = OIS::MouseEvent(mEngine->inputMan()->mouse(), ms);
-	return evt;
-}
-
-void QSteelWidget::mouseMoveEvent(QMouseEvent *e)
-{
-	QPoint move = e->pos() - mLastMousePosition;
-
-	if (mIsInputGrabbed)
-	{
-		OIS::MouseEvent evt = qtToOisMouseEvent(e);
-		mEngine->inputMan()->mouseMoved(evt);
-
-		QPoint pos(min(max(0, e->x()), width()), min(max(0, e->y()), height()));
-		QCursor::setPos(mapToGlobal(pos));
-
-		mLastMousePosition = pos;
-	}
-	else
-	{
-		//to keep last
-		mLastMousePosition = e->pos();
-	}
-	e->accept();
 }
 
 void QSteelWidget::wheelEvent(QWheelEvent *e)
@@ -336,21 +456,5 @@ OIS::KeyEvent QSteelWidget::qtToOisKeyEvent(QKeyEvent *e)
 	}
 	OIS::KeyEvent evt(mEngine->inputMan()->keyboard(), keycode, 0);
 	return evt;
-}
-
-void QSteelWidget::keyPressEvent(QKeyEvent *e)
-{
-	//	cout<<"QSteelWidget::keyPressEvent"<<endl;
-	OIS::KeyEvent evt = qtToOisKeyEvent(e);
-	mEngine->inputMan()->keyPressed(evt);
-	e->accept();
-}
-
-void QSteelWidget::keyReleaseEvent(QKeyEvent *e)
-{
-	//	cout<<"QSteelWidget::keyReleaseEvent"<<endl;
-	OIS::KeyEvent evt = qtToOisKeyEvent(e);
-	mEngine->inputMan()->keyReleased(evt);
-	e->accept();
 }
 

@@ -11,6 +11,10 @@ OBJECTS_DIR = build
 INCLUDEPATH += /media/z2/cpp/1105/Steel/Steel/include
 INCLUDEPATH += /usr/local/include/OGRE
 
+HEADERS += unittests.h
+HEADERS += QtOgreConversions.h
 HEADERS += QSteelWidget.h
-			
+
+SOURCES += unittests.cpp
+SOURCES += QtOgreConversions.cpp
 SOURCES += QSteelWidget.cpp

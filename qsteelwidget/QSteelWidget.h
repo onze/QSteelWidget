@@ -8,19 +8,21 @@
 #ifndef QSteelWidget_H
 #define QSteelWidget_H
 
+#include <QVector3D>
 #include <QWidget>
 #include <OgreLog.h>
 
 #include <Engine.h>
 
-class QSteelWidget: public QWidget,Ogre::LogListener
+class QSteelWidget: public QWidget, Ogre::LogListener
 {
 Q_OBJECT
 public:
 	QSteelWidget(QWidget * parent = 0L);
 	virtual ~QSteelWidget();
+	inline bool isSteelReady(){return mIsSteelReady;};
 	/**
-	 * First apparition.
+	 * Called at first apparition in a qt app.
 	 * @param e
 	 */
 	virtual void showEvent(QShowEvent *e);
@@ -38,6 +40,20 @@ public:
 								Ogre::LogMessageLevel lml,
 								bool maskDebug,
 								const Ogre::String &logName);
+	void closeEvent(QCloseEvent *e);
+	/**
+	 * sets the current level the widget is dealing with.
+	 * @param name: name of the level.
+	 */
+	void setLevel(QString projectRootdir, QString levelName);
+	/**
+	 * Instanciates a new entity at the dropping position. All required resources are expected to be ready.
+	 */
+	unsigned long addInanimate(QString meshName, QVector3D pos, QVector4D rot);
+	QVector3D dropTargetPosition(QVector3D delta);
+	QVector4D dropTargetRotation();
+	QVector3D inanimatePosition(unsigned long id);
+
 public slots:
 	virtual void moveEvent(QMoveEvent *e);
 	virtual void mouseMoveEvent(QMouseEvent *e);
@@ -54,10 +70,48 @@ public slots:
 	 */
 	void engineModeUpdate(void);
 
-	signals:
+signals:
+	/**
+	 * emitted when steel has been initialised and is ready.
+	 */
+	void onSteelReady();
+	/**
+	 * emitted when ogre logs area written.
+	 * @param line: the line of log.
+	 */
 	void onNewLogLine(QString line);
-//	void onNewLogLine();
+	/**
+	 * emitted in response to a dropEvent, if it contains an url.
+	 * @param url: the url dropped in the widget.
+	 */
+	void onItemDropped(QString url);
+
 protected:
+	inline Ogre::String q2o_string(QString s)
+	{
+		return Ogre::String(s.toStdString().c_str());
+	}
+	;
+	inline QString o2q_string(Ogre::String s)
+	{
+		return QString(s.c_str());
+	}
+	;
+	inline void quickLog(std::string s)
+	{
+		Ogre::LogManager::getSingletonPtr()->logMessage(s);
+	}
+	;
+	inline void quickLog(QString s)
+	{
+		quickLog(s.toStdString());
+	}
+	;
+	inline void quickLog(const char *s)
+	{
+		quickLog(QString(s).toStdString());
+	}
+	;
 	OIS::MouseEvent qtToOisMouseEvent(QMouseEvent *e);
 	OIS::KeyEvent qtToOisKeyEvent(QKeyEvent *e);
 	/**
@@ -84,10 +138,13 @@ protected:
 	 * release inputs /editor mode
 	 */
 	void releaseInputs(void);
+	bool mIsSteelReady;
 	Steel::Engine *mEngine;
 	bool mIsInputGrabbed;
 	QPoint mLastMousePosition;
 	QTimer *mTimer;
+	Steel::Level *mLevel;
+	Ogre::String mLevelName, mProjectRootdir;
 
 };
 #endif // QtOgreWidget_H
