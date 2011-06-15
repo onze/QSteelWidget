@@ -20,7 +20,11 @@ Q_OBJECT
 public:
 	QSteelWidget(QWidget * parent = 0L);
 	virtual ~QSteelWidget();
-	inline bool isSteelReady(){return mIsSteelReady;};
+	inline bool isSteelReady()
+	{
+		return mIsSteelReady;
+	}
+	;
 	/**
 	 * Called at first apparition in a qt app.
 	 * @param e
@@ -53,6 +57,11 @@ public:
 	QVector3D dropTargetPosition(QVector3D delta);
 	QVector4D dropTargetRotation();
 	QVector3D inanimatePosition(unsigned long id);
+
+	QVector3D cameraPosition();
+	void cameraPosition(QVector3D pos);
+	QVector4D cameraRotation();
+	void cameraRotation(QVector4D rot);
 
 public slots:
 	virtual void moveEvent(QMoveEvent *e);

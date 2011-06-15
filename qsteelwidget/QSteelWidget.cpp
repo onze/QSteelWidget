@@ -70,6 +70,28 @@ unsigned long QSteelWidget::addInanimate(QString meshName, QVector3D pos, QVecto
 	return id;
 }
 
+
+QVector3D QSteelWidget::cameraPosition()
+{
+	return convert(mEngine->camera()->camNode()->getPosition());
+}
+
+void QSteelWidget::cameraPosition(QVector3D pos)
+{
+	mEngine->camera()->camNode()->setPosition(convert(pos));
+}
+
+QVector4D QSteelWidget::cameraRotation()
+{
+	return convert(mEngine->camera()->camNode()->getOrientation());
+}
+
+void QSteelWidget::cameraRotation(QVector4D rot)
+{
+	mEngine->camera()->camNode()->setOrientation(convert(rot));
+}
+
+
 QVector3D QSteelWidget::dropTargetPosition(QVector3D delta)
 {
 	if (mEngine == NULL)
