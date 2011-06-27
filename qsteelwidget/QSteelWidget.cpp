@@ -48,6 +48,17 @@ QSteelWidget::~QSteelWidget()
 	}
 }
 
+void QSteelWidget::addResourceLocation(QString path, QString type, QString resGroup)
+{
+	if (mEngine == NULL)
+		quickLog("could not add resource location {path:" + path + ", type:" + type + ", res group:" + resGroup + "}.");
+	else
+		Ogre::ResourceGroupManager::getSingletonPtr()->addResourceLocation(	convert(path),
+																			convert(type),
+																			convert(resGroup),
+																			false);
+}
+
 unsigned long QSteelWidget::createThing(QString meshName, QVector3D pos, QVector4D rot)
 {
 	quickLog("QSteelWidget::createThing(meshName=" + meshName + " pos="
@@ -100,6 +111,7 @@ QVector4D QSteelWidget::dropTargetRotation()
 
 void QSteelWidget::closeEvent(QCloseEvent *e)
 {
+	emit onSteelClosing(this);
 	if (mEngine)
 		mEngine->shutdown();
 	e->accept();
@@ -231,6 +243,14 @@ QPaintEngine *QSteelWidget::paintEngine() const
 	return 0;
 }
 
+void QSteelWidget::removeResourceLocation(QString path, QString resGroup)
+{
+	if (mEngine == NULL)
+		quickLog("could not remove resource group \'" + resGroup + "\': engine is already deleted.");
+	else
+		Ogre::ResourceGroupManager::getSingletonPtr()->removeResourceLocation(convert(path), convert(resGroup));
+}
+
 void QSteelWidget::resizeEvent(QResizeEvent *e)
 {
 	QWidget::resizeEvent(e);
@@ -298,8 +318,11 @@ void QSteelWidget::mouseReleaseEvent(QMouseEvent *e)
 	else
 	{
 		list<Steel::ModelId> selection;
-		mEngine->selectThings(selection, e->x(), e->y());
-		emit onThingsSelected(QList<Steel::ModelId>::fromStdList(selection));
+		mEngine->pickThings(selection, e->x(), e->y());
+		mEngine->setSelectedThings(selection, true);
+		emit
+		onThingsSelected(QList<Steel::ModelId>::fromStdList(selection));
+		update();
 	}
 	mLastMousePosition = e->pos();
 	e->accept();

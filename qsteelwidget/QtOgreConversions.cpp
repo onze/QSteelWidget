@@ -16,6 +16,12 @@ V convert(U &u)
 	return V(u);
 }
 
+
+QString convert(const Ogre::String &s)
+{
+	return QString(s.c_str());
+}
+
 QVector3D convert(const Ogre::Vector3 &v)
 {
 	return QVector3D(v.x,v.y,v.z);
@@ -24,6 +30,11 @@ QVector3D convert(const Ogre::Vector3 &v)
 QVector4D convert(const Ogre::Quaternion &q)
 {
 	return QVector4D(q.x,q.y,q.z,q.w);
+}
+
+Ogre::String convert(const QString &s)
+{
+	return Ogre::String(s.toStdString().c_str());
 }
 
 Ogre::Vector3 convert(const QVector3D &v)

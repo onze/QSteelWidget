@@ -21,6 +21,13 @@ Q_OBJECT
 public:
 	QSteelWidget(QWidget * parent = 0L);
 	virtual ~QSteelWidget();
+	/**
+	 * access to Ogre::ResourceManager stuff.
+	 * @param path
+	 * @param type
+	 * @param resGroup
+	 */
+	void addResourceLocation(QString path, QString type, QString resGroup);
 	inline bool isSteelReady()
 	{
 		return mIsSteelReady;
@@ -46,6 +53,12 @@ public:
 								bool maskDebug,
 								const Ogre::String &logName);
 	void closeEvent(QCloseEvent *e);
+	/**
+	 * removes the location from the resource group from ogre resourceManager.
+	 * @param path
+	 * @param resGroup
+	 */
+	void removeResourceLocation(QString path, QString resGroup);
 	/**
 	 * sets the current level the widget is dealing with.
 	 * @param name: name of the level.
@@ -85,6 +98,10 @@ signals:
 	 * emitted when steel has been initialised and is ready.
 	 */
 	void onSteelReady();
+	/**
+	 * emitted when steel is about to be closed.
+	 */
+	void onSteelClosing(QSteelWidget *);
 	/**
 	 * emitted when ogre logs area written.
 	 * @param line: the line of log.
