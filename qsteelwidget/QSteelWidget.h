@@ -8,6 +8,7 @@
 #ifndef QSteelWidget_H
 #define QSteelWidget_H
 
+#include <QList>
 #include <QVector3D>
 #include <QWidget>
 #include <OgreLog.h>
@@ -51,12 +52,12 @@ public:
 	 */
 	void setLevel(QString projectRootdir, QString levelName);
 	/**
-	 * Instanciates a new entity at the dropping position. All required resources are expected to be ready.
+	 * Instanciates a new Thing at the dropping position. All required resources are expected to be ready.
 	 */
-	unsigned long addInanimate(QString meshName, QVector3D pos, QVector4D rot);
+	unsigned long createThing(QString meshName, QVector3D pos, QVector4D rot);
 	QVector3D dropTargetPosition(QVector3D delta);
 	QVector4D dropTargetRotation();
-	QVector3D inanimatePosition(unsigned long id);
+	QVector3D thingPosition(unsigned long id);
 
 	QVector3D cameraPosition();
 	void cameraPosition(QVector3D pos);
@@ -94,6 +95,10 @@ signals:
 	 * @param url: the url dropped in the widget.
 	 */
 	void onItemDropped(QString url);
+	/**
+	 * emitted when the user clicks on the viewport. The parameter 'selection' is a QList of ids of selected things.
+	 */
+	void onThingsSelected(QList<unsigned long> selection);
 
 protected:
 	inline Ogre::String q2o_string(QString s)

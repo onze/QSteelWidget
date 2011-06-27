@@ -16,15 +16,17 @@ using namespace std;
 #include <OgreLogManager.h>
 #include <X11/Xlib.h>
 
-#include "QSteelWidget.h"
+#include <steeltypes.h>
+#include <Debug.h>
 
+#include "QSteelWidget.h"
 #include "QtOgreConversions.h"
 
 #include "unittests.h"
 
 QSteelWidget::QSteelWidget(QWidget * parent) :
-	QWidget(parent), mIsSteelReady(false), mEngine(0), mIsInputGrabbed(false), mTimer(0), mLevelName(""),
-			mProjectRootdir("./")
+	QWidget(parent), Ogre::LogListener(), mIsSteelReady(false), mEngine(0), mIsInputGrabbed(false), mTimer(0),
+			mLevelName(""), mProjectRootdir("./")
 {
 	setAttribute(Qt::WA_NoSystemBackground);
 	setAttribute(Qt::WA_OpaquePaintEvent);
@@ -33,6 +35,7 @@ QSteelWidget::QSteelWidget(QWidget * parent) :
 
 	setAcceptDrops(true);
 
+	//quick unit tests
 	unitMain();
 }
 
@@ -45,31 +48,21 @@ QSteelWidget::~QSteelWidget()
 	}
 }
 
-unsigned long QSteelWidget::addInanimate(QString meshName, QVector3D pos, QVector4D rot)
+unsigned long QSteelWidget::createThing(QString meshName, QVector3D pos, QVector4D rot)
 {
-	quickLog("QSteelWidget::drop_inanimate(meshName=" + meshName + " dropTargetDist="
-			+ QString("(%1, %2, %3)").arg(pos.x()).arg(pos.y()).arg(pos.z()));
+	quickLog("QSteelWidget::createThing(meshName=" + meshName + " pos="
+			+ QString("(x=%1, y=%2, z=%3)").arg(pos.x()).arg(pos.y()).arg(pos.z())
+			+ QString("(x=%1, y=%2, z=%3, w=%4)").arg(rot.x()).arg(rot.y()).arg(rot.z()).arg(rot.w()));
 	if (mLevel == NULL)
 	{
 		quickLog("mLevel == NULL !");
 		return 0L;
 	}
 	Ogre::Quaternion r = mEngine->camera()->camNode()->getOrientation();
-	if(r!=convert(rot))
-	{
-		cout<<"blem !"
-				<<"cam quat:"<<Ogre::StringConverter::toString(r)
-				<<" -> as vec4: "
-				<<toString(convert(r))<<endl
-				<<"given vec4:"
-				<<toString(rot)
-				<<" -> as quat: "<<Ogre::StringConverter::toString(convert(rot))<<endl;
-	}
-	unsigned long id = mLevel->createInanimate(q2o_string(meshName), convert(pos), convert(rot));
+	Steel::ThingId id = mLevel->newThing(q2o_string(meshName), convert(pos), convert(rot));
 	update();
-	return id;
+	return (unsigned long) id;
 }
-
 
 QVector3D QSteelWidget::cameraPosition()
 {
@@ -90,7 +83,6 @@ void QSteelWidget::cameraRotation(QVector4D rot)
 {
 	mEngine->camera()->camNode()->setOrientation(convert(rot));
 }
-
 
 QVector3D QSteelWidget::dropTargetPosition(QVector3D delta)
 {
@@ -153,31 +145,9 @@ void QSteelWidget::grabInputs(void)
 
 }
 
-QVector3D QSteelWidget::inanimatePosition(unsigned long id)
-{
-	if (mLevel == NULL)
-	{
-		quickLog("QSteelWidget::inanimatePosition(): no level loaded.");
-		return QVector3D();
-	}
-	Steel::Inanimate *ina = mLevel->getInanimate(id);
-	if (ina == NULL)
-	{
-		quickLog("QSteelWidget::inanimatePosition(): no inanimate for id " + QString::number(id) + ".");
-		return QVector3D();
-	}
-	//TODO: return a Descriptor instead ?
-	//	Ogre::Vector3 oPos=ina->node()->getPosition();
-	//	QVector3D qPos(oPos.x,oPos.y,oPos.z);
-	//	return qPos;
-	return convert(ina->node()->getPosition());
-}
-
 void QSteelWidget::initSteel()
 {
 	cout << "QSteelWidget::initSteel()" << endl;
-	Ogre::Log *defaultLog = (new Ogre::LogManager())->createLog("ogre_log.log", true, false, true);
-	defaultLog->addListener(this);
 
 	mEngine = new Steel::Engine();
 
@@ -205,8 +175,8 @@ void QSteelWidget::initSteel()
 
 #endif
 
-	mEngine->embeddedInit("plugins.cfg", widgetHandle.toStdString(), width(), height(), defaultLog->getName());
-	defaultLog->logMessage("steel widget ready.");
+	mEngine->embeddedInit("plugins.cfg", widgetHandle.toStdString(), width(), height(), "qsteelwidget.log", this);
+	Steel::Debug::log("steel widget ready.").endl();
 	if (!(mProjectRootdir == "./" && mLevelName == ""))
 		setLevel(QString(mProjectRootdir.c_str()), QString(mLevelName.c_str()));
 	mIsSteelReady = true;
@@ -325,6 +295,12 @@ void QSteelWidget::mouseReleaseEvent(QMouseEvent *e)
 		}
 		mEngine->inputMan()->mouseReleased(evt, btn);
 	}
+	else
+	{
+		list<Steel::ModelId> selection;
+		mEngine->selectThings(selection, e->x(), e->y());
+		emit onThingsSelected(QList<Steel::ModelId>::fromStdList(selection));
+	}
 	mLastMousePosition = e->pos();
 	e->accept();
 }
@@ -332,9 +308,9 @@ void QSteelWidget::mouseReleaseEvent(QMouseEvent *e)
 void QSteelWidget::mouseDoubleClickEvent(QMouseEvent *e)
 {
 	if (mIsInputGrabbed)
-		stopEngineMode();// and start editor mode
+		stopEngineMode();// start editor mode
 	else
-		startEngineMode();// and stop editor mode
+		startEngineMode();// stop editor mode
 
 	//to keep last
 	mLastMousePosition = e->pos();
@@ -440,6 +416,31 @@ void QSteelWidget::stopEngineMode()
 	mTimer->stop();
 	disconnect(mTimer, SIGNAL(timeout()), this, SLOT(engineModeUpdate()));
 	delete mTimer;
+}
+
+QVector3D QSteelWidget::thingPosition(unsigned long id)
+{
+	if (mLevel == NULL)
+	{
+		quickLog("QSteelWidget::thingPosition(): no level loaded.");
+		return QVector3D();
+	}
+	Steel::Thing *t = mLevel->getThing((Steel::ThingId) id);
+	if (t == NULL)
+	{
+		quickLog("QSteelWidget::thingPosition(): no thing for id " + QString::number(id) + ".");
+		return QVector3D();
+	}
+	//TODO: return a Descriptor instead ?
+	Steel::OgreModel *model = t->ogreModel();
+
+	if (model == NULL)
+	{
+		quickLog("QSteelWidget::thingPosition(): no OgreModel for thing" + QString::number(id) + ".");
+		return QVector3D();
+	}
+
+	return convert(model->position());
 }
 
 void QSteelWidget::wheelEvent(QWheelEvent *e)
