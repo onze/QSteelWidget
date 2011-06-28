@@ -26,7 +26,7 @@ using namespace std;
 
 QSteelWidget::QSteelWidget(QWidget * parent) :
 	QWidget(parent), Ogre::LogListener(), mIsSteelReady(false), mEngine(0), mIsInputGrabbed(false), mTimer(0),
-			mLevelName(""), mProjectRootdir("./")
+			mLevelName(""), mProjectRootdir("./"),mSelectionTranslated(false)
 {
 	setAttribute(Qt::WA_NoSystemBackground);
 	setAttribute(Qt::WA_OpaquePaintEvent);
@@ -287,6 +287,15 @@ void QSteelWidget::mousePressEvent(QMouseEvent *e)
 		}
 		mEngine->inputMan()->mousePressed(evt, btn);
 	}
+	else
+	{
+		list<Steel::ModelId> selection;
+		mEngine->pickThings(selection, e->x(), e->y());
+		mEngine->setSelectedThings(selection, true);
+		emit
+		onThingsSelected(QList<Steel::ModelId>::fromStdList(selection));
+		update();
+	}
 	mLastMousePosition = e->pos();
 	e->accept();
 }
@@ -317,12 +326,13 @@ void QSteelWidget::mouseReleaseEvent(QMouseEvent *e)
 	}
 	else
 	{
-		list<Steel::ModelId> selection;
-		mEngine->pickThings(selection, e->x(), e->y());
-		mEngine->setSelectedThings(selection, true);
-		emit
-		onThingsSelected(QList<Steel::ModelId>::fromStdList(selection));
-		update();
+		if(mSelectionTranslated)
+		{
+			std::list<Steel::ThingId> sel=mEngine->selection();
+			for(std::list<Steel::ThingId>::iterator it=sel.begin();it!=sel.end();++it)
+				emit onThingUpdated(*it,"position",convert(mLevel->getThing(*it)->ogreModel()->position()));
+			mSelectionTranslated=false;
+		}
 	}
 	mLastMousePosition = e->pos();
 	e->accept();
@@ -356,6 +366,53 @@ void QSteelWidget::mouseMoveEvent(QMouseEvent *e)
 	}
 	else
 	{
+		if (mEngine->hasSelection())
+		{
+			QVector3D v = QVector3D();
+			if (e->modifiers() & Qt::ShiftModifier)
+			{
+				quickLog("shift");
+			}
+			else
+			{
+				Ogre::Real _x = float(mLastMousePosition.x());
+				Ogre::Real _y = float(mLastMousePosition.y());
+				Ogre::Real x = float(e->x());
+				Ogre::Real y = float(e->y());
+				Ogre::Real w = float(width());
+				Ogre::Real h = float(height());
+				Ogre::Vector3 selectionPos = mEngine->selectionPosition();
+				Ogre::Plane plane = Ogre::Plane(Ogre::Vector3::UNIT_Y, selectionPos.y);
+				//what we want is a vector of translation from the selection's position to a new one.
+				//first we see where falls a ray that we cast from the cam to the last coordinates on the viewport
+				//(the idea is to cast a ray from the camera to a horizontal plane at the base of the selection)
+				Ogre::Ray ray = mEngine->camera()->cam()->getCameraToViewportRay(_x/w, _y/h);
+				std::pair<bool, Ogre::Real> result = ray.intersects(plane);
+				if (result.first)
+				{
+					Ogre::Vector3 src = ray.getPoint(result.second);
+//					quickLog("src:"+Ogre::StringConverter::toString(src));
+					//then we do the same with the new coordinates on the viewport
+
+					ray = mEngine->camera()->cam()->getCameraToViewportRay(x/w, y/h);
+					result = ray.intersects(plane);
+					if(result.first)
+					{
+						Ogre::Vector3 dst = ray.getPoint(result.second);
+//						quickLog("dst:"+Ogre::StringConverter::toString(dst));
+						//finally, we translate the selection according to the vector given by substracting two points.
+						Ogre::Vector3 t=dst-src;
+						//just making sure we have an horizontal translation (should be useless since plane is horizontal)
+						t.y=0.f;
+//						quickLog("t:"+Ogre::StringConverter::toString(t));
+						mEngine->translateSelection(t);
+						mSelectionTranslated=true;
+						update();
+					}
+				}
+
+			}
+		}
 		//to keep last
 		mLastMousePosition = e->pos();
 	}

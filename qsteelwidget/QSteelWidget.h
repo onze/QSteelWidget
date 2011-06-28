@@ -116,6 +116,13 @@ signals:
 	 * emitted when the user clicks on the viewport. The parameter 'selection' is a QList of ids of selected things.
 	 */
 	void onThingsSelected(QList<unsigned long> selection);
+	/**
+	 * emitted when a Thing's instance hgas a property changed because of editing (position, rotation, etc)
+	 * @param id
+	 * @param property
+	 * @param value
+	 */
+	void onThingUpdated(unsigned long id, QString property, QVector3D value);
 
 protected:
 	inline Ogre::String q2o_string(QString s)
@@ -176,6 +183,11 @@ protected:
 	QTimer *mTimer;
 	Steel::Level *mLevel;
 	Ogre::String mLevelName, mProjectRootdir;
+	/**
+	 * switched to true during a mouseMove, to indicate that the selection has been translated and need an update
+	 * in weld internals.
+	 */
+	bool mSelectionTranslated;
 
 };
 #endif // QtOgreWidget_H
