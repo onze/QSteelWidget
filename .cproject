@@ -61,16 +61,6 @@
 							</tool>
 						</toolChain>
 					</folderInfo>
-					<fileInfo id="0.1419871675.1386648675.qsteelwidgetpy/PyQSteelWidget/qsteelwidget_wrapper.cpp" name="qsteelwidget_wrapper.cpp" rcbsApplicability="disable" resourcePath="qsteelwidgetpy/PyQSteelWidget/qsteelwidget_wrapper.cpp" toolsToInvoke="org.eclipse.cdt.build.core.settings.holder.2128699206">
-						<tool id="org.eclipse.cdt.build.core.settings.holder.2128699206" name="GNU C++" superClass="org.eclipse.cdt.build.core.settings.holder.1875330522">
-							<inputType id="org.eclipse.cdt.build.core.settings.holder.inType.1756794437" languageId="org.eclipse.cdt.core.g++" languageName="GNU C++" sourceContentType="org.eclipse.cdt.core.cxxSource,org.eclipse.cdt.core.cxxHeader" superClass="org.eclipse.cdt.build.core.settings.holder.inType"/>
-						</tool>
-					</fileInfo>
-					<fileInfo id="0.1419871675.1386648675.qsteelwidgetpy/PyQSteelWidget/pyqsteelwidget_module_wrapper.cpp" name="pyqsteelwidget_module_wrapper.cpp" rcbsApplicability="disable" resourcePath="qsteelwidgetpy/PyQSteelWidget/pyqsteelwidget_module_wrapper.cpp" toolsToInvoke="org.eclipse.cdt.build.core.settings.holder.876304397">
-						<tool id="org.eclipse.cdt.build.core.settings.holder.876304397" name="GNU C++" superClass="org.eclipse.cdt.build.core.settings.holder.1875330522">
-							<inputType id="org.eclipse.cdt.build.core.settings.holder.inType.854334705" languageId="org.eclipse.cdt.core.g++" languageName="GNU C++" sourceContentType="org.eclipse.cdt.core.cxxSource,org.eclipse.cdt.core.cxxHeader" superClass="org.eclipse.cdt.build.core.settings.holder.inType"/>
-						</tool>
-					</fileInfo>
 					<fileInfo id="0.1419871675.1386648675.PyQSteelWidget/pyqsteelwidget_module_wrapper.cpp" name="pyqsteelwidget_module_wrapper.cpp" rcbsApplicability="disable" resourcePath="PyQSteelWidget/pyqsteelwidget_module_wrapper.cpp" toolsToInvoke="org.eclipse.cdt.build.core.settings.holder.1824486437">
 						<tool id="org.eclipse.cdt.build.core.settings.holder.1824486437" name="GNU C++" superClass="org.eclipse.cdt.build.core.settings.holder.1875330522">
 							<inputType id="org.eclipse.cdt.build.core.settings.holder.inType.1822340670" languageId="org.eclipse.cdt.core.g++" languageName="GNU C++" sourceContentType="org.eclipse.cdt.core.cxxSource,org.eclipse.cdt.core.cxxHeader" superClass="org.eclipse.cdt.build.core.settings.holder.inType"/>
@@ -79,11 +69,6 @@
 					<fileInfo id="0.1419871675.1386648675.qsteelwidget/QtOgreConversions.cpp" name="QtOgreConversions.cpp" rcbsApplicability="disable" resourcePath="qsteelwidget/QtOgreConversions.cpp" toolsToInvoke="org.eclipse.cdt.build.core.settings.holder.10927298">
 						<tool id="org.eclipse.cdt.build.core.settings.holder.10927298" name="GNU C++" superClass="org.eclipse.cdt.build.core.settings.holder.1875330522">
 							<inputType id="org.eclipse.cdt.build.core.settings.holder.inType.889499421" languageId="org.eclipse.cdt.core.g++" languageName="GNU C++" sourceContentType="org.eclipse.cdt.core.cxxSource,org.eclipse.cdt.core.cxxHeader" superClass="org.eclipse.cdt.build.core.settings.holder.inType"/>
-						</tool>
-					</fileInfo>
-					<fileInfo id="0.1419871675.1386648675.450972835" name="moc_QSteelWidget.cpp" rcbsApplicability="disable" resourcePath="qsteelwidget/build/moc_QSteelWidget.cpp" toolsToInvoke="org.eclipse.cdt.build.core.settings.holder.1506879848.1203055973">
-						<tool id="org.eclipse.cdt.build.core.settings.holder.1506879848.1203055973" name="GNU C++" superClass="org.eclipse.cdt.build.core.settings.holder.1875330522">
-							<inputType id="org.eclipse.cdt.build.core.settings.holder.inType.403411482" languageId="org.eclipse.cdt.core.g++" languageName="GNU C++" sourceContentType="org.eclipse.cdt.core.cxxSource,org.eclipse.cdt.core.cxxHeader" superClass="org.eclipse.cdt.build.core.settings.holder.inType"/>
 						</tool>
 					</fileInfo>
 					<fileInfo id="0.1419871675.1386648675.qsteelwidget/unittests.cpp" name="unittests.cpp" rcbsApplicability="disable" resourcePath="qsteelwidget/unittests.cpp" toolsToInvoke="org.eclipse.cdt.build.core.settings.holder.2027550665">
@@ -490,16 +475,6 @@
 							</tool>
 						</toolChain>
 					</folderInfo>
-					<fileInfo id="0.1419871675.1386648675.720925846.qsteelwidgetpy/PyQSteelWidget/qsteelwidget_wrapper.cpp" name="qsteelwidget_wrapper.cpp" rcbsApplicability="disable" resourcePath="qsteelwidgetpy/PyQSteelWidget/qsteelwidget_wrapper.cpp" toolsToInvoke="org.eclipse.cdt.build.core.settings.holder.466714486">
-						<tool id="org.eclipse.cdt.build.core.settings.holder.466714486" name="GNU C++" superClass="org.eclipse.cdt.build.core.settings.holder.1818552312">
-							<inputType id="org.eclipse.cdt.build.core.settings.holder.inType.365384737" languageId="org.eclipse.cdt.core.g++" languageName="GNU C++" sourceContentType="org.eclipse.cdt.core.cxxSource,org.eclipse.cdt.core.cxxHeader" superClass="org.eclipse.cdt.build.core.settings.holder.inType"/>
-						</tool>
-					</fileInfo>
-					<fileInfo id="0.1419871675.1386648675.720925846.qsteelwidgetpy/PyQSteelWidget/pyqsteelwidget_module_wrapper.cpp" name="pyqsteelwidget_module_wrapper.cpp" rcbsApplicability="disable" resourcePath="qsteelwidgetpy/PyQSteelWidget/pyqsteelwidget_module_wrapper.cpp" toolsToInvoke="org.eclipse.cdt.build.core.settings.holder.256271140">
-						<tool id="org.eclipse.cdt.build.core.settings.holder.256271140" name="GNU C++" superClass="org.eclipse.cdt.build.core.settings.holder.1818552312">
-							<inputType id="org.eclipse.cdt.build.core.settings.holder.inType.1189210470" languageId="org.eclipse.cdt.core.g++" languageName="GNU C++" sourceContentType="org.eclipse.cdt.core.cxxSource,org.eclipse.cdt.core.cxxHeader" superClass="org.eclipse.cdt.build.core.settings.holder.inType"/>
-						</tool>
-					</fileInfo>
 					<fileInfo id="0.1419871675.1386648675.720925846.PyQSteelWidget/pyqsteelwidget_module_wrapper.cpp" name="pyqsteelwidget_module_wrapper.cpp" rcbsApplicability="disable" resourcePath="PyQSteelWidget/pyqsteelwidget_module_wrapper.cpp" toolsToInvoke="org.eclipse.cdt.build.core.settings.holder.2144298417">
 						<tool id="org.eclipse.cdt.build.core.settings.holder.2144298417" name="GNU C++" superClass="org.eclipse.cdt.build.core.settings.holder.1818552312">
 							<inputType id="org.eclipse.cdt.build.core.settings.holder.inType.999554365" languageId="org.eclipse.cdt.core.g++" languageName="GNU C++" sourceContentType="org.eclipse.cdt.core.cxxSource,org.eclipse.cdt.core.cxxHeader" superClass="org.eclipse.cdt.build.core.settings.holder.inType"/>
