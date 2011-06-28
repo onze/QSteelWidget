@@ -10,6 +10,7 @@
 
 #include <QList>
 #include <QVector3D>
+#include <QVector4D>
 #include <QWidget>
 #include <OgreLog.h>
 
@@ -123,6 +124,7 @@ signals:
 	 * @param value
 	 */
 	void onThingUpdated(unsigned long id, QString property, QVector3D value);
+	void onThingUpdated(unsigned long id, QString property, QVector4D value);
 
 protected:
 	inline Ogre::String q2o_string(QString s)
@@ -188,6 +190,10 @@ protected:
 	 * in weld internals.
 	 */
 	bool mSelectionTranslated;
+	/**
+	 * Same as mSelectionTranslated, but with rotation.
+	 */
+	bool mSelectionRotated;
 
 };
 #endif // QtOgreWidget_H
