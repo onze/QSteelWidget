@@ -127,16 +127,6 @@ signals:
 	void onThingUpdated(unsigned long id, QString property, QVector4D value);
 
 protected:
-	inline Ogre::String q2o_string(QString s)
-	{
-		return Ogre::String(s.toStdString().c_str());
-	}
-	;
-	inline QString o2q_string(Ogre::String s)
-	{
-		return QString(s.c_str());
-	}
-	;
 	inline void quickLog(std::string s)
 	{
 		Ogre::LogManager::getSingletonPtr()->logMessage(s);
@@ -150,6 +140,11 @@ protected:
 	inline void quickLog(const char *s)
 	{
 		quickLog(QString(s).toStdString());
+	}
+	;
+	inline void quickLog(Ogre::Vector3 v)
+	{
+		quickLog(Ogre::StringConverter::toString(v));
 	}
 	;
 	OIS::MouseEvent qtToOisMouseEvent(QMouseEvent *e);
@@ -194,6 +189,15 @@ protected:
 	 * Same as mSelectionTranslated, but with rotation.
 	 */
 	bool mSelectionRotated;
+	enum TransformationMode
+	{
+		TM_TRANSLATION, TM_ROTATION, TM_SCALE
+	};
+	/**
+	 * one of the enum
+	 */
+	TransformationMode mTransformationMode;
+	bool bplane;
 
 };
 #endif // QtOgreWidget_H

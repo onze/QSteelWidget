@@ -13,7 +13,13 @@ using namespace std;
 #include <QX11Info>
 #include <QWidget>
 #include <OgreMath.h>
+
 #include <OgreLogManager.h>
+
+#include <OgreSceneNode.h>
+#include <OgreMeshManager.h>
+#include <OgreEntity.h>
+
 #include <X11/Xlib.h>
 
 #include <steeltypes.h>
@@ -26,13 +32,14 @@ using namespace std;
 
 QSteelWidget::QSteelWidget(QWidget * parent) :
 	QWidget(parent), Ogre::LogListener(), mIsSteelReady(false), mEngine(0), mIsInputGrabbed(false), mTimer(0),
-			mLevelName(""), mProjectRootdir("./"), mSelectionTranslated(false), mSelectionRotated(false)
+			mLevelName(""), mProjectRootdir("./"), mSelectionTranslated(false), mSelectionRotated(false),
+			mTransformationMode(QSteelWidget::TM_TRANSLATION)
 {
 	setAttribute(Qt::WA_NoSystemBackground);
 	setAttribute(Qt::WA_OpaquePaintEvent);
 	setAutoFillBackground(false);
 	setMinimumSize(320, 240);
-
+	setFocusPolicy(Qt::StrongFocus);
 	setAcceptDrops(true);
 
 	//quick unit tests
@@ -59,22 +66,6 @@ void QSteelWidget::addResourceLocation(QString path, QString type, QString resGr
 																			false);
 }
 
-unsigned long QSteelWidget::createThing(QString meshName, QVector3D pos, QVector4D rot)
-{
-	quickLog("QSteelWidget::createThing(meshName=" + meshName + " pos="
-			+ QString("(x=%1, y=%2, z=%3)").arg(pos.x()).arg(pos.y()).arg(pos.z())
-			+ QString("(x=%1, y=%2, z=%3, w=%4)").arg(rot.x()).arg(rot.y()).arg(rot.z()).arg(rot.w()));
-	if (mLevel == NULL)
-	{
-		quickLog("mLevel == NULL !");
-		return 0L;
-	}
-	Ogre::Quaternion r = mEngine->camera()->camNode()->getOrientation();
-	Steel::ThingId id = mLevel->newThing(q2o_string(meshName), convert(pos), convert(rot));
-	update();
-	return (unsigned long) id;
-}
-
 QVector3D QSteelWidget::cameraPosition()
 {
 	return convert(mEngine->camera()->camNode()->getPosition());
@@ -93,6 +84,23 @@ QVector4D QSteelWidget::cameraRotation()
 void QSteelWidget::cameraRotation(QVector4D rot)
 {
 	mEngine->camera()->camNode()->setOrientation(convert(rot));
+}
+
+unsigned long QSteelWidget::createThing(QString meshName, QVector3D pos, QVector4D rot)
+{
+	quickLog("QSteelWidget::createThing(meshName=" + meshName
+	         + " pos="+ QString("(x=%1, y=%2, z=%3)").arg(pos.x()).arg(pos.y()).arg(pos.z())
+	         + " rot="+ QString("(x=%1, y=%2, z=%3, w=%4)").arg(rot.x()).arg(rot.y()).arg(rot.z()).arg(rot.w()));
+	if (mLevel == NULL)
+	{
+		quickLog("mLevel == NULL !");
+		return 0L;
+	}
+	Ogre::Quaternion r = mEngine->camera()->camNode()->getOrientation();
+	Steel::ThingId id = mLevel->newThing(convert(meshName), convert(pos), convert(rot));
+	update();
+	quickLog("");
+	return (unsigned long) id;
 }
 
 QVector3D QSteelWidget::dropTargetPosition(QVector3D delta)
@@ -198,16 +206,55 @@ void QSteelWidget::initSteel()
 void QSteelWidget::keyPressEvent(QKeyEvent *e)
 {
 	//	cout<<"QSteelWidget::keyPressEvent"<<endl;
-	OIS::KeyEvent evt = qtToOisKeyEvent(e);
-	mEngine->inputMan()->keyPressed(evt);
-	e->accept();
+	if (mIsInputGrabbed)
+	{
+		OIS::KeyEvent evt = qtToOisKeyEvent(e);
+		mEngine->inputMan()->keyPressed(evt);
+		e->accept();
+	}
 }
 
 void QSteelWidget::keyReleaseEvent(QKeyEvent *e)
 {
-	//	cout<<"QSteelWidget::keyReleaseEvent"<<endl;
-	OIS::KeyEvent evt = qtToOisKeyEvent(e);
-	mEngine->inputMan()->keyReleased(evt);
+	cout << "QSteelWidget::keyReleaseEvent" << endl;
+	if (mIsInputGrabbed)
+	{
+		OIS::KeyEvent evt = qtToOisKeyEvent(e);
+		mEngine->inputMan()->keyReleased(evt);
+	}
+	else
+	{
+		switch (e->key())
+		{
+			case Qt::Key_R:
+				mTransformationMode = QSteelWidget::TM_ROTATION;
+				quickLog("QSteelWidget::keyReleaseEvent(): switched to rotation mode.");
+				break;
+			case Qt::Key_S:
+				mTransformationMode = QSteelWidget::TM_SCALE;
+				quickLog("QSteelWidget::keyReleaseEvent(): switched to scale mode.");
+				break;
+			case Qt::Key_T:
+				mTransformationMode = QSteelWidget::TM_TRANSLATION;
+				quickLog("QSteelWidget::keyReleaseEvent(): switched to translation mode.");
+				break;
+			case Qt::Key_Delete:
+				if (mEngine->hasSelection())
+				{
+					quickLog("QSteelWidget::keyReleaseEvent(): deleting selection.");
+					mEngine->deleteSelection();
+					update();
+				}
+				else
+				{
+					quickLog("QSteelWidget::keyReleaseEvent(): no selection to delete.");
+				}
+
+				break;
+			default:
+				break;
+		}
+	}
 	e->accept();
 }
 
@@ -216,7 +263,7 @@ void QSteelWidget::messageLogged(	const Ogre::String &message,
 									bool maskDebug,
 									const Ogre::String &logName)
 {
-	emit onNewLogLine(QString(message.c_str()));
+	emit onNewLogLine(convert(message));
 }
 
 void QSteelWidget::moveEvent(QMoveEvent *e)
@@ -375,87 +422,104 @@ void QSteelWidget::mouseMoveEvent(QMouseEvent *e)
 	{
 		if (mEngine->hasSelection())
 		{
-			if (e->modifiers() & Qt::ShiftModifier)
+			Ogre::Real _x = float(mLastMousePosition.x());
+			Ogre::Real _y = float(mLastMousePosition.y());
+			Ogre::Real x = float(e->x());
+			Ogre::Real y = float(e->y());
+			Ogre::Real w = float(width());
+			Ogre::Real h = float(height());
+			switch (mTransformationMode)
 			{
-				Ogre::Real _x = float(mLastMousePosition.x());
-				Ogre::Real _y = float(mLastMousePosition.y());
-				Ogre::Real x = float(e->x());
-				Ogre::Real y = float(e->y());
-				Ogre::Real w = float(width());
-				Ogre::Real h = float(height());
-				Ogre::Vector3 selectionPos = mEngine->selectionPosition();
-				//I have not found a faster way to do this:
-				//first I build a plan with the camera orientation as normal
-				Ogre::Vector3 normal = mEngine->camera()->camNode()->getOrientation() * Ogre::Vector3::UNIT_Z;
-				Ogre::Plane plane = Ogre::Plane(normal, Ogre::Vector3::ZERO);
-				//then, since I don't know how to compute the distance to feed it, I let it at the origin
-				//ask IT its distance to where I wanted to put it (the selection),
-				Ogre::Real dist=plane.getDistance(selectionPos);
-				//and build a new one there. suboptimal =/
-				plane=Ogre::Plane(normal,dist);
-				plane.normalise();
-				//the idea here is to move the selection on a plane perpendicular to the camera
-				//we want a vector of the translation from src to dst, where src is where a ray cast from the camera
-				//and passing by the last mouse coordinates hits the mentionned plane, and dst is the same with a ray
-				//passing through the current mouse coordinates.
-				Ogre::Ray ray = mEngine->camera()->cam()->getCameraToViewportRay(_x / w, _y / h);
-				std::pair<bool, Ogre::Real> result = ray.intersects(plane);
-				if (result.first)
-				{
-					Ogre::Vector3 src = ray.getPoint(result.second);
-					//then we do the same with the new coordinates on the viewport
-					ray = mEngine->camera()->cam()->getCameraToViewportRay(x / w, y / h);
-					result = ray.intersects(plane);
-					if (result.first)
+				case QSteelWidget::TM_TRANSLATION:
+					if (e->modifiers() & Qt::ShiftModifier)
 					{
-						Ogre::Vector3 dst = ray.getPoint(result.second);
-						//finally, we translate the selection according to the vector given by substracting two points.
-						Ogre::Vector3 t = dst - src;
-						//just making sure we have an horizontal translation (should be useless since plane is horizontal)
-						t.x = t.z = 0.f;
-//						quickLog(Ogre::StringConverter::toString(t));
-						mEngine->translateSelection(t);
-						mSelectionTranslated = true;
+						//translation along y
+						Ogre::Vector3 selectionPos = mEngine->selectionPosition();
+						//I have not found a faster way to do this:
+						//first I build a plan with the camera orientation as normal (but vertical).
+						Ogre::Vector3 normal = mEngine->camera()->camNode()->getOrientation() * Ogre::Vector3::UNIT_Z;
+						normal.y = .0f;
+						Ogre::Plane plane = Ogre::Plane(normal, Ogre::Vector3::ZERO);
+						//and since I don't know how to compute the distance to feed it, I let it at (0,0,0).
+						//ask IT its distance to where I wanted to put it (the selection),
+						Ogre::Real dist = plane.getDistance(selectionPos);
+						//and build a new one there. suboptimal =/
+						plane = Ogre::Plane(normal, dist);
+						//						plane.normalise();
+						//the idea here is to move the selection on a plane perpendicular to the camera view.
+						//we want a vector of the translation from src to dst, where src is where a ray cast from the camera
+						//and passing by the last mouse coordinates hits the mentionned plane, and dst is the same with a ray
+						//passing through the current mouse coordinates.
+						Ogre::Ray ray = mEngine->camera()->cam()->getCameraToViewportRay(_x / w, _y / h);
+						std::pair<bool, Ogre::Real> result = ray.intersects(plane);
+						if (result.first)
+						{
+							//							quickLog("1");
+							Ogre::Vector3 src = ray.getPoint(result.second);
+							//then we do the same with the new coordinates on the viewport
+							ray = mEngine->camera()->cam()->getCameraToViewportRay(x / w, y / h);
+							result = ray.intersects(plane);
+							if (result.first)
+							{
+								//								quickLog("2");
+								Ogre::Vector3 dst = ray.getPoint(result.second);
+								//finally, we translate the selection according to the vector given by substracting two points.
+								Ogre::Vector3 t = dst - src;
+								t.y = t.y > 10.f ? .0f : t.y < -10.f ? 0.f : t.y;
+								mEngine->translateSelection(Ogre::Vector3::UNIT_Y * t);
+								mSelectionTranslated = true;
+								update();
+							}
+						}
+
+					}
+					else
+					{
+						Ogre::Vector3 selectionPos = mEngine->selectionPosition();
+						Ogre::Plane plane = Ogre::Plane(Ogre::Vector3::UNIT_Y, selectionPos.y);
+						plane.normalise();
+						//what we want is a vector of translation from the selection's position to a new one.
+						//first we see where falls a ray that we cast from the cam to the last coordinates on the viewport
+						//(the idea is to cast a ray from the camera to a horizontal plane at the base of the selection)
+						Ogre::Ray ray = mEngine->camera()->cam()->getCameraToViewportRay(_x / w, _y / h);
+						std::pair<bool, Ogre::Real> result = ray.intersects(plane);
+						if (result.first)
+						{
+							Ogre::Vector3 src = ray.getPoint(result.second);
+							//then we do the same with the new coordinates on the viewport
+							ray = mEngine->camera()->cam()->getCameraToViewportRay(x / w, y / h);
+							result = ray.intersects(plane);
+							if (result.first)
+							{
+								Ogre::Vector3 dst = ray.getPoint(result.second);
+								//finally, we translate the selection according to the vector given by substracting two points.
+								Ogre::Vector3 t = dst - src;
+								//just making sure we have an horizontal translation (should be useless since plane is horizontal)
+								t.y = 0.f;
+								mEngine->translateSelection(t);
+								mSelectionTranslated = true;
+								update();
+							}
+						}
+
+					}
+					break;
+				case QSteelWidget::TM_ROTATION:
+
+					if (e->modifiers() & Qt::ShiftModifier)
+					{
+						quickLog("rotation with shift modifier is not implemented yet !");
+					}
+					else
+					{
+						Ogre::Vector3 r = Ogre::Vector3(.0f, 180.f * (x - _x) / (w / 2.f), .0f);
+						mEngine->rotateSelection(r);
+						mSelectionRotated = true;
 						update();
 					}
-				}
-
-			}
-			else
-			{
-				Ogre::Real _x = float(mLastMousePosition.x());
-				Ogre::Real _y = float(mLastMousePosition.y());
-				Ogre::Real x = float(e->x());
-				Ogre::Real y = float(e->y());
-				Ogre::Real w = float(width());
-				Ogre::Real h = float(height());
-				Ogre::Vector3 selectionPos = mEngine->selectionPosition();
-				Ogre::Plane plane = Ogre::Plane(Ogre::Vector3::UNIT_Y, selectionPos.y);
-				plane.normalise();
-				//what we want is a vector of translation from the selection's position to a new one.
-				//first we see where falls a ray that we cast from the cam to the last coordinates on the viewport
-				//(the idea is to cast a ray from the camera to a horizontal plane at the base of the selection)
-				Ogre::Ray ray = mEngine->camera()->cam()->getCameraToViewportRay(_x / w, _y / h);
-				std::pair<bool, Ogre::Real> result = ray.intersects(plane);
-				if (result.first)
-				{
-					Ogre::Vector3 src = ray.getPoint(result.second);
-					//then we do the same with the new coordinates on the viewport
-					ray = mEngine->camera()->cam()->getCameraToViewportRay(x / w, y / h);
-					result = ray.intersects(plane);
-					if (result.first)
-					{
-						Ogre::Vector3 dst = ray.getPoint(result.second);
-						//finally, we translate the selection according to the vector given by substracting two points.
-						Ogre::Vector3 t = dst - src;
-						//just making sure we have an horizontal translation (should be useless since plane is horizontal)
-						t.y = 0.f;
-						mEngine->translateSelection(t);
-						mSelectionTranslated = true;
-						update();
-					}
-				}
-
+					break;
+				default:
+					break;
 			}
 		}
 		//to keep last
