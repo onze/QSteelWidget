@@ -4,3 +4,5 @@
 *.o
 moc_*
 *wrapper.cpp
+qsteelwidget/Makefile
+qsteelwidgetpy/Makefile
