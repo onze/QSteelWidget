@@ -16,6 +16,7 @@ using namespace std;
 
 #include <OgreLogManager.h>
 
+#include <OgreResourceGroupManager.h>
 #include <OgreSceneNode.h>
 #include <OgreMeshManager.h>
 #include <OgreEntity.h>
@@ -24,6 +25,7 @@ using namespace std;
 
 #include <steeltypes.h>
 #include <Debug.h>
+typedef Steel::Debug Debug;
 
 #include "QSteelWidget.h"
 #include "QtOgreConversions.h"
@@ -55,6 +57,7 @@ QSteelWidget::~QSteelWidget()
 		delete mEngine;
 	}
 }
+
 
 void QSteelWidget::addResourceLocation(QString path, QString type, QString resGroup)
 {
@@ -90,7 +93,7 @@ void QSteelWidget::cameraRotation(QVector4D rot)
 	mEngine->camera()->camNode()->setOrientation(convert(rot));
 }
 
-unsigned long QSteelWidget::createThing(QString meshName, QVector3D pos, QVector4D rot)
+unsigned long QSteelWidget::createThing(QString meshName, QVector3D pos, QVector4D rot, bool involvesNewResources)
 {
 	quickLog("QSteelWidget::createThing(meshName=" + meshName + " pos="
 			+ QString("(x=%1, y=%2, z=%3)").arg(pos.x()).arg(pos.y()).arg(pos.z()) + " rot="
@@ -101,7 +104,7 @@ unsigned long QSteelWidget::createThing(QString meshName, QVector3D pos, QVector
 		return 0L;
 	}
 	Ogre::Quaternion r = mEngine->camera()->camNode()->getOrientation();
-	Steel::ThingId id = mLevel->newThing(convert(meshName), convert(pos), convert(rot));
+	Steel::ThingId id = mLevel->newThing(convert(meshName), convert(pos), convert(rot),involvesNewResources);
 	update();
 	quickLog("");
 	return (unsigned long) id;
@@ -200,9 +203,9 @@ void QSteelWidget::initSteel()
 #endif
 
 	mEngine->embeddedInit("plugins.cfg", widgetHandle.toStdString(), width(), height(), "qsteelwidget.log", this);
-	Steel::Debug::log.endl()("======================").endl();
-	Steel::Debug::log("= steel widget ready =").endl();
-	Steel::Debug::log("======================").endl().endl();
+	Debug::log.endl()("======================").endl();
+	Debug::log("= steel widget ready =").endl();
+	Debug::log("======================").endl().endl();
 	if (!(mProjectRootdir == "./" && mLevelName == ""))
 		setLevel(QString(mProjectRootdir.c_str()), QString(mLevelName.c_str()));
 	mIsSteelReady = true;
@@ -222,7 +225,7 @@ void QSteelWidget::keyPressEvent(QKeyEvent *e)
 
 void QSteelWidget::keyReleaseEvent(QKeyEvent *e)
 {
-	cout << "QSteelWidget::keyReleaseEvent" << endl;
+	//	cout << "QSteelWidget::keyReleaseEvent" << endl;
 	if (mIsInputGrabbed)
 	{
 		OIS::KeyEvent evt = qtToOisKeyEvent(e);
@@ -248,7 +251,9 @@ void QSteelWidget::keyReleaseEvent(QKeyEvent *e)
 				if (mEngine->hasSelection())
 				{
 					quickLog("QSteelWidget::keyReleaseEvent(): deleting selection.");
+					QList<unsigned long> oldSelection=QList<unsigned long>::fromStdList(mEngine->selection());
 					mEngine->deleteSelection();
+					emit onThingsDeleted(oldSelection);
 					update();
 				}
 				else
@@ -412,7 +417,7 @@ void QSteelWidget::mouseReleaseEvent(QMouseEvent *e)
 			case Qt::RightButton:
 				if (mIsTransformingSelection)
 				{
-					mIsSelectionTransformingAborted=true;
+					mIsSelectionTransformingAborted = true;
 					mEngine->setSelectionPosition(mSelectionPosBeforeTransformation);
 					update();
 				}
@@ -595,8 +600,6 @@ void QSteelWidget::setLevel(QString projectRootdir, QString levelName)
 	cout
 			<< (("QSteelWidget::setLevel(projectRootdir:" + projectRootdir + ", levelName=" + levelName + ")").toStdString())
 			<< endl;
-	mProjectRootdir = Ogre::String(projectRootdir.toStdString().c_str());
-	mLevelName = Ogre::String(levelName.toStdString().c_str());
 	if (mEngine)
 	{
 		mEngine->setRootdir(Ogre::String(projectRootdir.toStdString().c_str()));

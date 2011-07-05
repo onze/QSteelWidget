@@ -23,12 +23,12 @@ public:
 	QSteelWidget(QWidget * parent = 0L);
 	virtual ~QSteelWidget();
 	/**
-	 * access to Ogre::ResourceManager stuff.
-	 * @param path
-	 * @param type
-	 * @param resGroup
+	 * allows loading from the given folder (path).
+	 * type should probably be FileSystem.
 	 */
 	void addResourceLocation(QString path, QString type, QString resGroup);
+	///Instanciates a new Thing at the dropping position. All required resources are expected to be ready.
+	unsigned long createThing(QString meshName, QVector3D pos, QVector4D rot,bool involvesNewResources=false);
 	inline bool isSteelReady()
 	{
 		return mIsSteelReady;
@@ -65,8 +65,6 @@ public:
 	 * @param name: name of the level.
 	 */
 	void setLevel(QString projectRootdir, QString levelName);
-	///Instanciates a new Thing at the dropping position. All required resources are expected to be ready.
-	unsigned long createThing(QString meshName, QVector3D pos, QVector4D rot);
 	QVector3D dropTargetPosition(QVector3D delta);
 	QVector4D dropTargetRotation();
 	QVector3D thingPosition(unsigned long id);
@@ -107,7 +105,8 @@ signals:
 	 * @param url: the url dropped in the widget.
 	 */
 	void onItemDropped(QString url);
-
+	///emitted when a Thin has been deleted
+	void onThingsDeleted(QList<unsigned long> ids);
 	///emitted when the user clicks on the viewport. The parameter 'selection' is a QList of ids of selected things.
 	void onThingsSelected(QList<unsigned long> selection);
 	/**
