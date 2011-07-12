@@ -93,9 +93,9 @@ void QSteelWidget::cameraRotation(QVector4D rot)
 	mEngine->camera()->camNode()->setOrientation(convert(rot));
 }
 
-unsigned long QSteelWidget::createThing(QString meshName, QVector3D pos, QVector4D rot, bool involvesNewResources)
+unsigned long QSteelWidget::createAgent(QString meshName, QVector3D pos, QVector4D rot, bool involvesNewResources)
 {
-	quickLog("QSteelWidget::createThing(meshName=" + meshName + " pos="
+	quickLog("QSteelWidget::createAgent(meshName=" + meshName + " pos="
 			+ QString("(x=%1, y=%2, z=%3)").arg(pos.x()).arg(pos.y()).arg(pos.z()) + " rot="
 			+ QString("(x=%1, y=%2, z=%3, w=%4)").arg(rot.x()).arg(rot.y()).arg(rot.z()).arg(rot.w()));
 	if (mLevel == NULL)
@@ -104,7 +104,7 @@ unsigned long QSteelWidget::createThing(QString meshName, QVector3D pos, QVector
 		return 0L;
 	}
 	Ogre::Quaternion r = mEngine->camera()->camNode()->getOrientation();
-	Steel::ThingId id = mLevel->newThing(convert(meshName), convert(pos), convert(rot),involvesNewResources);
+	Steel::AgentId id = mLevel->newAgent(convert(meshName), convert(pos), convert(rot),involvesNewResources);
 	update();
 	quickLog("");
 	return (unsigned long) id;
@@ -253,7 +253,7 @@ void QSteelWidget::keyReleaseEvent(QKeyEvent *e)
 					quickLog("QSteelWidget::keyReleaseEvent(): deleting selection.");
 					QList<unsigned long> oldSelection=QList<unsigned long>::fromStdList(mEngine->selection());
 					mEngine->deleteSelection();
-					emit onThingsDeleted(oldSelection);
+					emit onAgentsDeleted(oldSelection);
 					update();
 				}
 				else
@@ -351,13 +351,13 @@ void QSteelWidget::mousePressEvent(QMouseEvent *e)
 		switch (e->button())
 		{
 			case Qt::LeftButton:
-				mEngine->pickThings(selection, e->x(), e->y());
-				mEngine->setSelectedThings(selection, true);
+				mEngine->pickAgents(selection, e->x(), e->y());
+				mEngine->setSelectedAgents(selection, true);
 				if (mEngine->hasSelection())
 				{
 					mSelectionPosBeforeTransformation = mEngine->selectionPosition();
 					emit
-					onThingsSelected(QList<Steel::ModelId>::fromStdList(selection));
+					onAgentsSelected(QList<Steel::ModelId>::fromStdList(selection));
 				}
 				update();
 				break;
@@ -400,16 +400,16 @@ void QSteelWidget::mouseReleaseEvent(QMouseEvent *e)
 			case Qt::LeftButton:
 				if (mSelectionTranslated)
 				{
-					std::list<Steel::ThingId> sel = mEngine->selection();
-					for (std::list<Steel::ThingId>::iterator it = sel.begin(); it != sel.end(); ++it)
-						emit onThingUpdated(*it, "position", convert(mLevel->getThing(*it)->ogreModel()->position()));
+					std::list<Steel::AgentId> sel = mEngine->selection();
+					for (std::list<Steel::AgentId>::iterator it = sel.begin(); it != sel.end(); ++it)
+						emit onAgentUpdated(*it, "position", convert(mLevel->getAgent(*it)->ogreModel()->position()));
 					mSelectionTranslated = false;
 				}
 				if (mSelectionRotated)
 				{
-					std::list<Steel::ThingId> sel = mEngine->selection();
-					for (std::list<Steel::ThingId>::iterator it = sel.begin(); it != sel.end(); ++it)
-						emit onThingUpdated(*it, "rotation", convert(mLevel->getThing(*it)->ogreModel()->rotation()));
+					std::list<Steel::AgentId> sel = mEngine->selection();
+					for (std::list<Steel::AgentId>::iterator it = sel.begin(); it != sel.end(); ++it)
+						emit onAgentUpdated(*it, "rotation", convert(mLevel->getAgent(*it)->ogreModel()->rotation()));
 					mSelectionRotated = false;
 				}
 				mIsSelectionTransformingAborted = false;
@@ -648,17 +648,17 @@ void QSteelWidget::stopEngineMode()
 	delete mTimer;
 }
 
-QVector3D QSteelWidget::thingPosition(unsigned long id)
+QVector3D QSteelWidget::agentPosition(unsigned long id)
 {
 	if (mLevel == NULL)
 	{
-		quickLog("QSteelWidget::thingPosition(): no level loaded.");
+		quickLog("QSteelWidget::agentPosition(): no level loaded.");
 		return QVector3D();
 	}
-	Steel::Thing *t = mLevel->getThing((Steel::ThingId) id);
+	Steel::Agent *t = mLevel->getAgent((Steel::AgentId) id);
 	if (t == NULL)
 	{
-		quickLog("QSteelWidget::thingPosition(): no thing for id " + QString::number(id) + ".");
+		quickLog("QSteelWidget::agentPosition(): no agent for id " + QString::number(id) + ".");
 		return QVector3D();
 	}
 	//TODO: return a Descriptor instead ?
@@ -666,7 +666,7 @@ QVector3D QSteelWidget::thingPosition(unsigned long id)
 
 	if (model == NULL)
 	{
-		quickLog("QSteelWidget::thingPosition(): no OgreModel for thing" + QString::number(id) + ".");
+		quickLog("QSteelWidget::agentPosition(): no OgreModel for agent" + QString::number(id) + ".");
 		return QVector3D();
 	}
 

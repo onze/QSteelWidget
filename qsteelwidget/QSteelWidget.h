@@ -27,8 +27,8 @@ public:
 	 * type should probably be FileSystem.
 	 */
 	void addResourceLocation(QString path, QString type, QString resGroup);
-	///Instanciates a new Thing at the dropping position. All required resources are expected to be ready.
-	unsigned long createThing(QString meshName, QVector3D pos, QVector4D rot,bool involvesNewResources=false);
+	///Instanciates a new Agent at the dropping position. All required resources are expected to be ready.
+	unsigned long createAgent(QString meshName, QVector3D pos, QVector4D rot, bool involvesNewResources = false);
 	inline bool isSteelReady()
 	{
 		return mIsSteelReady;
@@ -67,7 +67,7 @@ public:
 	void setLevel(QString projectRootdir, QString levelName);
 	QVector3D dropTargetPosition(QVector3D delta);
 	QVector4D dropTargetRotation();
-	QVector3D thingPosition(unsigned long id);
+	QVector3D agentPosition(unsigned long id);
 
 	QVector3D cameraPosition();
 	void cameraPosition(QVector3D pos);
@@ -106,17 +106,17 @@ signals:
 	 */
 	void onItemDropped(QString url);
 	///emitted when a Thin has been deleted
-	void onThingsDeleted(QList<unsigned long> ids);
+	void onAgentsDeleted(QList<unsigned long> ids);
 	///emitted when the user clicks on the viewport. The parameter 'selection' is a QList of ids of selected things.
-	void onThingsSelected(QList<unsigned long> selection);
+	void onAgentsSelected(QList<unsigned long> selection);
 	/**
 	 * emitted when a Thing's instance hgas a property changed because of editing (position, rotation, etc)
 	 * @param id
 	 * @param property
 	 * @param value
 	 */
-	void onThingUpdated(unsigned long id, QString property, QVector3D value);
-	void onThingUpdated(unsigned long id, QString property, QVector4D value);
+	void onAgentUpdated(unsigned long id, QString property, QVector3D value);
+	void onAgentUpdated(unsigned long id, QString property, QVector4D value);
 
 protected:
 	inline void quickLog(std::string s)
