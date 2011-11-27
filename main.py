@@ -1,31 +1,36 @@
+#!/usr/bin/python
 
-"""
-sets up a dummy window with an empty steel widget in it.
-"""
+print 'bootstrapping...'
 
 import sys
+import os
 
+#making sure we are where we should
+root,script=os.path.split(os.path.abspath(__file__))
+os.chdir(root)
+
+#making sure we can load shared object modules located in our folder
+if 'LD_LIBRARY_PATH' not in os.environ or root not in os.environ['LD_LIBRARY_PATH']:
+    print 'adding test\'s root folder (\'%(root)s\') to LD_LIBRARY_PATH and relaunching...'%locals()
+    os.environ['LD_LIBRARY_PATH']=root+':'+os.environ['LD_LIBRARY_PATH']
+    os.execve(script, (script,), os.environ)
+else:
+    print 'LD_LIBRARY_PATH:',os.environ['LD_LIBRARY_PATH']
+
+
+import PySide
 from PySide.QtCore import *
 from PySide.QtGui import *
 
-#should be in LD_LIBRARY_PATH be found
-#-> whther a ternial export, or as a launch prefix for any needing app:
-#env LD_LIBRARY_PATH=/media/z2/cpp/1105/Hybrid python ./main.py
-from PyQSteelWidget import *
+import PyQSteelWidget
 
-a = QApplication(sys.argv)
-m=QMainWindow()
-m.setWindowTitle('QSteelWidget')
-m.resize(800,600)
-mw=QWidget()
-m.setCentralWidget(mw)
-m.show()
-l=QVBoxLayout()
-mw.setLayout(l)
-l.addWidget(QPushButton('b1'))
-if 0:
-    l.addWidget(QWidget())
-else:
-    l.addWidget(QSteelWidget())
-l.addWidget(QPushButton('b2'))
-a.exec_()
+class MainWindow(QMainWindow):
+    def __init__(self, parent=None):
+        super(MainWindow, self).__init__(parent)
+         
+if __name__ == '__main__':
+    app = QApplication(sys.argv)
+    window = MainWindow()
+    window.setCentralWidget(PyQSteelWidget.QSteelWidget())
+    window.show()
+    app.exec_()

@@ -11,6 +11,7 @@ using namespace std;
 
 #include <QtGui>
 #include <QX11Info>
+
 #include <QWidget>
 #include <OgreMath.h>
 
@@ -26,17 +27,18 @@ using namespace std;
 #include <steeltypes.h>
 #include <Debug.h>
 typedef Steel::Debug Debug;
-
+//
 #include "QSteelWidget.h"
 #include "QtOgreConversions.h"
-
+//
 #include "unittests.h"
 
 QSteelWidget::QSteelWidget(QWidget * parent) :
-	QWidget(parent), Ogre::LogListener(), mIsSteelReady(false), mEngine(0), mIsInputGrabbed(false), mTimer(0),
-			mLevelName(""), mProjectRootdir("./"), mSelectionTranslated(false), mSelectionRotated(false),
-			mTransformationMode(QSteelWidget::TM_TRANSLATION), mIsTransformingSelection(false),
-			mIsSelectionTransformingAborted(false)
+		QWidget(parent), Ogre::LogListener(), mIsSteelReady(false), mEngine(0), mIsInputGrabbed(
+				false), mTimer(0), mLevel(NULL), mLevelName(""), mProjectRootdir(
+				"./"), mSelectionTranslated(false), mSelectionRotated(false), mTransformationMode(
+				QSteelWidget::TM_TRANSLATION), mIsTransformingSelection(false), mIsSelectionTransformingAborted(
+				false)
 {
 	setAttribute(Qt::WA_NoSystemBackground);
 	setAttribute(Qt::WA_OpaquePaintEvent);
@@ -58,18 +60,20 @@ QSteelWidget::~QSteelWidget()
 	}
 }
 
-
-void QSteelWidget::addResourceLocation(QString path, QString type, QString resGroup)
+void QSteelWidget::addResourceLocation(	QString path,
+										QString type,
+										QString resGroup)
 {
 	if (mEngine == NULL)
-		quickLog("could not add resource location {path:" + path + ", type:" + type + ", res group:" + resGroup + "}.");
+		quickLog(
+				"could not add resource location {path:" + path + ", type:"
+						+ type + ", res group:" + resGroup + "}.");
 	else
 	{
-		Ogre::ResourceGroupManager::getSingletonPtr()->addResourceLocation(	convert(path),
-																			convert(type),
-																			convert(resGroup),
-																			false);
-		Ogre::ResourceGroupManager::getSingletonPtr()->initialiseResourceGroup(convert(resGroup));
+		Ogre::ResourceGroupManager::getSingletonPtr()->addResourceLocation(
+				convert(path), convert(type), convert(resGroup), false);
+		Ogre::ResourceGroupManager::getSingletonPtr()->initialiseResourceGroup(
+				convert(resGroup));
 	}
 }
 
@@ -93,18 +97,25 @@ void QSteelWidget::cameraRotation(QVector4D rot)
 	mEngine->camera()->camNode()->setOrientation(convert(rot));
 }
 
-unsigned long QSteelWidget::createAgent(QString meshName, QVector3D pos, QVector4D rot, bool involvesNewResources)
+unsigned long QSteelWidget::createAgent(QString meshName,
+										QVector3D pos,
+										QVector4D rot,
+										bool involvesNewResources)
 {
-	quickLog("QSteelWidget::createAgent(meshName=" + meshName + " pos="
-			+ QString("(x=%1, y=%2, z=%3)").arg(pos.x()).arg(pos.y()).arg(pos.z()) + " rot="
-			+ QString("(x=%1, y=%2, z=%3, w=%4)").arg(rot.x()).arg(rot.y()).arg(rot.z()).arg(rot.w()));
+	quickLog(
+			"QSteelWidget::createAgent(meshName=" + meshName + " pos="
+					+ QString("(x=%1, y=%2, z=%3)").arg(pos.x()).arg(pos.y()).arg(
+							pos.z()) + " rot="
+					+ QString("(x=%1, y=%2, z=%3, w=%4)").arg(rot.x()).arg(
+							rot.y()).arg(rot.z()).arg(rot.w()));
 	if (mLevel == NULL)
 	{
 		quickLog("mLevel == NULL !");
-		return 0L;
+		return Steel::INVALID_ID;
 	}
-	Ogre::Quaternion r = mEngine->camera()->camNode()->getOrientation();
-	Steel::AgentId id = mLevel->newAgent(convert(meshName), convert(pos), convert(rot),involvesNewResources);
+//	Ogre::Quaternion r = mEngine->camera()->camNode()->getOrientation();
+	Steel::AgentId id = mLevel->newAgent(convert(meshName), convert(pos),
+			convert(rot), involvesNewResources);
 	update();
 	quickLog("");
 	return (unsigned long) id;
@@ -150,7 +161,8 @@ void QSteelWidget::dropEvent(QDropEvent *e)
 		if (urlList.size() > 0)
 		{
 			quickLog(Ogre::String(urlList[0].toString().toStdString()));
-			emit onItemDropped(QString(urlList[0].toString().toStdString().c_str()));
+			emit onItemDropped(
+					QString(urlList[0].toString().toStdString().c_str()));
 		}
 	}
 	e->setAccepted(true);
@@ -202,7 +214,8 @@ void QSteelWidget::initSteel()
 
 #endif
 
-	mEngine->embeddedInit("plugins.cfg", widgetHandle.toStdString(), width(), height(), "qsteelwidget.log", this);
+	mEngine->embeddedInit("plugins.cfg", widgetHandle.toStdString(), width(),
+			height(), "qsteelwidget.log", this);
 	Debug::log.endl()("======================").endl();
 	Debug::log("= steel widget ready =").endl();
 	Debug::log("======================").endl().endl();
@@ -214,7 +227,7 @@ void QSteelWidget::initSteel()
 
 void QSteelWidget::keyPressEvent(QKeyEvent *e)
 {
-	//	cout<<"QSteelWidget::keyPressEvent"<<endl;
+	cout << "QSteelWidget::keyPressEvent" << endl;
 	if (mIsInputGrabbed)
 	{
 		OIS::KeyEvent evt = qtToOisKeyEvent(e);
@@ -225,7 +238,7 @@ void QSteelWidget::keyPressEvent(QKeyEvent *e)
 
 void QSteelWidget::keyReleaseEvent(QKeyEvent *e)
 {
-	//	cout << "QSteelWidget::keyReleaseEvent" << endl;
+	cout << "QSteelWidget::keyReleaseEvent" << endl;
 	if (mIsInputGrabbed)
 	{
 		OIS::KeyEvent evt = qtToOisKeyEvent(e);
@@ -235,35 +248,42 @@ void QSteelWidget::keyReleaseEvent(QKeyEvent *e)
 	{
 		switch (e->key())
 		{
-			case Qt::Key_R:
-				mTransformationMode = QSteelWidget::TM_ROTATION;
-				quickLog("QSteelWidget::keyReleaseEvent(): switched to rotation mode.");
-				break;
-			case Qt::Key_S:
-				mTransformationMode = QSteelWidget::TM_SCALE;
-				quickLog("QSteelWidget::keyReleaseEvent(): switched to scale mode.");
-				break;
-			case Qt::Key_T:
-				mTransformationMode = QSteelWidget::TM_TRANSLATION;
-				quickLog("QSteelWidget::keyReleaseEvent(): switched to translation mode.");
-				break;
-			case Qt::Key_Delete:
-				if (mEngine->hasSelection())
-				{
-					quickLog("QSteelWidget::keyReleaseEvent(): deleting selection.");
-					QList<unsigned long> oldSelection=QList<unsigned long>::fromStdList(mEngine->selection());
-					mEngine->deleteSelection();
-					emit onAgentsDeleted(oldSelection);
-					update();
-				}
-				else
-				{
-					quickLog("QSteelWidget::keyReleaseEvent(): no selection to delete.");
-				}
+		case Qt::Key_R:
+			mTransformationMode = QSteelWidget::TM_ROTATION;
+			quickLog(
+					"QSteelWidget::keyReleaseEvent(): switched to rotation mode.");
+			break;
+		case Qt::Key_S:
+			mTransformationMode = QSteelWidget::TM_SCALE;
+			quickLog(
+					"QSteelWidget::keyReleaseEvent(): switched to scale mode.");
+			break;
+		case Qt::Key_T:
+			mTransformationMode = QSteelWidget::TM_TRANSLATION;
+			quickLog(
+					"QSteelWidget::keyReleaseEvent(): switched to translation mode.");
+			break;
+		case Qt::Key_Delete:
+			if (mEngine->hasSelection())
+			{
+				quickLog(
+						"QSteelWidget::keyReleaseEvent(): deleting selection.");
+				QList<unsigned long> oldSelection =
+						QList<unsigned long>::fromStdList(mEngine->selection());
+				mEngine->deleteSelection();
+				emit
+				onAgentsDeleted(oldSelection);
+				update();
+			}
+			else
+			{
+				quickLog(
+						"QSteelWidget::keyReleaseEvent(): no selection to delete.");
+			}
 
-				break;
-			default:
-				break;
+			break;
+		default:
+			break;
 		}
 	}
 	e->accept();
@@ -296,7 +316,8 @@ void QSteelWidget::paintEvent(QPaintEvent *e)
 	e->accept();
 }
 
-QPaintEngine *QSteelWidget::paintEngine() const
+QPaintEngine *
+QSteelWidget::paintEngine() const
 {
 	return 0;
 }
@@ -304,9 +325,12 @@ QPaintEngine *QSteelWidget::paintEngine() const
 void QSteelWidget::removeResourceLocation(QString path, QString resGroup)
 {
 	if (mEngine == NULL)
-		quickLog("could not remove resource group \'" + resGroup + "\': engine is already deleted.");
+		quickLog(
+				"could not remove resource group \'" + resGroup
+						+ "\': engine is already deleted.");
 	else
-		Ogre::ResourceGroupManager::getSingletonPtr()->removeResourceLocation(convert(path), convert(resGroup));
+		Ogre::ResourceGroupManager::getSingletonPtr()->removeResourceLocation(
+				convert(path), convert(resGroup));
 }
 
 void QSteelWidget::resizeEvent(QResizeEvent *e)
@@ -330,18 +354,18 @@ void QSteelWidget::mousePressEvent(QMouseEvent *e)
 		OIS::MouseButtonID btn = OIS::MB_Left;
 		switch (e->button())
 		{
-			case Qt::LeftButton:
-				btn = OIS::MB_Left;
-				break;
-			case Qt::MiddleButton:
-				btn = OIS::MB_Middle;
-				break;
-			case Qt::RightButton:
-				btn = OIS::MB_Right;
-				break;
-			default:
-				e->accept();
-				return;
+		case Qt::LeftButton:
+			btn = OIS::MB_Left;
+			break;
+		case Qt::MiddleButton:
+			btn = OIS::MB_Middle;
+			break;
+		case Qt::RightButton:
+			btn = OIS::MB_Right;
+			break;
+		default:
+			e->accept();
+			return;
 		}
 		mEngine->inputMan()->mousePressed(evt, btn);
 	}
@@ -350,19 +374,20 @@ void QSteelWidget::mousePressEvent(QMouseEvent *e)
 		list<Steel::ModelId> selection;
 		switch (e->button())
 		{
-			case Qt::LeftButton:
-				mEngine->pickAgents(selection, e->x(), e->y());
-				mEngine->setSelectedAgents(selection, true);
-				if (mEngine->hasSelection())
-				{
-					mSelectionPosBeforeTransformation = mEngine->selectionPosition();
-					emit
-					onAgentsSelected(QList<Steel::ModelId>::fromStdList(selection));
-				}
-				update();
-				break;
-			default:
-				break;
+		case Qt::LeftButton:
+			mEngine->pickAgents(selection, e->x(), e->y());
+			mEngine->setSelectedAgents(selection, true);
+			if (mEngine->hasSelection())
+			{
+				mSelectionPosBeforeTransformation =
+						mEngine->selectionPosition();
+				emit
+				onAgentsSelected(QList<Steel::ModelId>::fromStdList(selection));
+			}
+			update();
+			break;
+		default:
+			break;
 		}
 	}
 	mLastMousePosition = e->pos();
@@ -378,53 +403,64 @@ void QSteelWidget::mouseReleaseEvent(QMouseEvent *e)
 		OIS::MouseButtonID btn = OIS::MB_Left;
 		switch (e->button())
 		{
-			case Qt::LeftButton:
-				btn = OIS::MB_Left;
-				break;
-			case Qt::MiddleButton:
-				btn = OIS::MB_Middle;
-				break;
-			case Qt::RightButton:
-				btn = OIS::MB_Right;
-				break;
-			default:
-				e->accept();
-				return;
-		}//end of switch(e->button())
+		case Qt::LeftButton:
+			btn = OIS::MB_Left;
+			break;
+		case Qt::MiddleButton:
+			btn = OIS::MB_Middle;
+			break;
+		case Qt::RightButton:
+			btn = OIS::MB_Right;
+			break;
+		default:
+			e->accept();
+			return;
+		} //end of switch(e->button())
 		mEngine->inputMan()->mouseReleased(evt, btn);
 	}
 	else
 	{
 		switch (e->button())
 		{
-			case Qt::LeftButton:
-				if (mSelectionTranslated)
-				{
-					std::list<Steel::AgentId> sel = mEngine->selection();
-					for (std::list<Steel::AgentId>::iterator it = sel.begin(); it != sel.end(); ++it)
-						emit onAgentUpdated(*it, "position", convert(mLevel->getAgent(*it)->ogreModel()->position()));
-					mSelectionTranslated = false;
-				}
-				if (mSelectionRotated)
-				{
-					std::list<Steel::AgentId> sel = mEngine->selection();
-					for (std::list<Steel::AgentId>::iterator it = sel.begin(); it != sel.end(); ++it)
-						emit onAgentUpdated(*it, "rotation", convert(mLevel->getAgent(*it)->ogreModel()->rotation()));
-					mSelectionRotated = false;
-				}
-				mIsSelectionTransformingAborted = false;
-				break;
-			case Qt::RightButton:
-				if (mIsTransformingSelection)
-				{
-					mIsSelectionTransformingAborted = true;
-					mEngine->setSelectionPosition(mSelectionPosBeforeTransformation);
-					update();
-				}
-				break;
-			default:
-				break;
-		}//end of switch(e->button())
+		case Qt::LeftButton:
+			if (mSelectionTranslated)
+			{
+				std::list<Steel::AgentId> sel = mEngine->selection();
+				for (std::list<Steel::AgentId>::iterator it = sel.begin();
+						it != sel.end(); ++it)
+					emit onAgentUpdated(
+							*it,
+							"position",
+							convert(
+									mLevel->getAgent(*it)->ogreModel()->position()));
+				mSelectionTranslated = false;
+			}
+			if (mSelectionRotated)
+			{
+				std::list<Steel::AgentId> sel = mEngine->selection();
+				for (std::list<Steel::AgentId>::iterator it = sel.begin();
+						it != sel.end(); ++it)
+					emit onAgentUpdated(
+							*it,
+							"rotation",
+							convert(
+									mLevel->getAgent(*it)->ogreModel()->rotation()));
+				mSelectionRotated = false;
+			}
+			mIsSelectionTransformingAborted = false;
+			break;
+		case Qt::RightButton:
+			if (mIsTransformingSelection)
+			{
+				mIsSelectionTransformingAborted = true;
+				mEngine->setSelectionPosition(
+						mSelectionPosBeforeTransformation);
+				update();
+			}
+			break;
+		default:
+			break;
+		} //end of switch(e->button())
 	}
 	mLastMousePosition = e->pos();
 	e->accept();
@@ -433,9 +469,9 @@ void QSteelWidget::mouseReleaseEvent(QMouseEvent *e)
 void QSteelWidget::mouseDoubleClickEvent(QMouseEvent *e)
 {
 	if (mIsInputGrabbed)
-		stopEngineMode();// start editor mode
+		stopEngineMode(); // start editor mode
 	else
-		startEngineMode();// stop editor mode
+		startEngineMode(); // stop editor mode
 
 	//to keep last
 	mLastMousePosition = e->pos();
@@ -471,101 +507,120 @@ void QSteelWidget::mouseMoveEvent(QMouseEvent *e)
 				Ogre::Real h = float(height());
 				switch (mTransformationMode)
 				{
-					case QSteelWidget::TM_TRANSLATION:
-						if (e->modifiers() & Qt::ShiftModifier)
+				case QSteelWidget::TM_TRANSLATION:
+					if (e->modifiers() & Qt::ShiftModifier)
+					{
+						//translation along y
+						Ogre::Vector3 selectionPos =
+								mEngine->selectionPosition();
+						//I have not found a faster way to do this:
+						//first I build a plan with the camera orientation as normal (but vertical).
+						Ogre::Vector3 normal =
+								mEngine->camera()->camNode()->getOrientation()
+										* Ogre::Vector3::UNIT_Z;
+						normal.y = .0f;
+						Ogre::Plane plane = Ogre::Plane(normal,
+								Ogre::Vector3::ZERO);
+						//and since I don't know how to compute the distance to feed it, I let it at (0,0,0).
+						//ask IT its distance to where I wanted to put it (the selection),
+						Ogre::Real dist = plane.getDistance(selectionPos);
+						//and build a new one there. suboptimal =/
+						plane = Ogre::Plane(normal, dist);
+						//						plane.normalise();
+						//the idea here is to move the selection on a plane perpendicular to the camera view.
+						//we want a vector of the translation from src to dst, where src is where a ray cast from the camera
+						//and passing by the last mouse coordinates hits the mentionned plane, and dst is the same with a ray
+						//passing through the current mouse coordinates.
+						Ogre::Ray ray =
+								mEngine->camera()->cam()->getCameraToViewportRay(
+										_x / w, _y / h);
+						std::pair<bool, Ogre::Real> result = ray.intersects(
+								plane);
+						if (result.first)
 						{
-							//translation along y
-							Ogre::Vector3 selectionPos = mEngine->selectionPosition();
-							//I have not found a faster way to do this:
-							//first I build a plan with the camera orientation as normal (but vertical).
-							Ogre::Vector3 normal = mEngine->camera()->camNode()->getOrientation()
-									* Ogre::Vector3::UNIT_Z;
-							normal.y = .0f;
-							Ogre::Plane plane = Ogre::Plane(normal, Ogre::Vector3::ZERO);
-							//and since I don't know how to compute the distance to feed it, I let it at (0,0,0).
-							//ask IT its distance to where I wanted to put it (the selection),
-							Ogre::Real dist = plane.getDistance(selectionPos);
-							//and build a new one there. suboptimal =/
-							plane = Ogre::Plane(normal, dist);
-							//						plane.normalise();
-							//the idea here is to move the selection on a plane perpendicular to the camera view.
-							//we want a vector of the translation from src to dst, where src is where a ray cast from the camera
-							//and passing by the last mouse coordinates hits the mentionned plane, and dst is the same with a ray
-							//passing through the current mouse coordinates.
-							Ogre::Ray ray = mEngine->camera()->cam()->getCameraToViewportRay(_x / w, _y / h);
-							std::pair<bool, Ogre::Real> result = ray.intersects(plane);
+							//							quickLog("1");
+							Ogre::Vector3 src = ray.getPoint(result.second);
+							//then we do the same with the new coordinates on the viewport
+							ray =
+									mEngine->camera()->cam()->getCameraToViewportRay(
+											x / w, y / h);
+							result = ray.intersects(plane);
 							if (result.first)
 							{
-								//							quickLog("1");
-								Ogre::Vector3 src = ray.getPoint(result.second);
-								//then we do the same with the new coordinates on the viewport
-								ray = mEngine->camera()->cam()->getCameraToViewportRay(x / w, y / h);
-								result = ray.intersects(plane);
-								if (result.first)
-								{
-									//								quickLog("2");
-									Ogre::Vector3 dst = ray.getPoint(result.second);
-									//finally, we translate the selection according to the vector given by substracting two points.
-									Ogre::Vector3 t = dst - src;
-									t.y = t.y > 10.f ? .0f : t.y < -10.f ? 0.f : t.y;
-									mEngine->translateSelection(Ogre::Vector3::UNIT_Y * t);
-									mSelectionTranslated = true;
-									update();
-								}
+								//								quickLog("2");
+								Ogre::Vector3 dst = ray.getPoint(result.second);
+								//finally, we translate the selection according to the vector given by substracting two points.
+								Ogre::Vector3 t = dst - src;
+								t.y = t.y > 10.f ? .0f :
+										t.y < -10.f ? 0.f : t.y;
+								mEngine->translateSelection(
+										Ogre::Vector3::UNIT_Y * t);
+								mSelectionTranslated = true;
+								update();
 							}
-
 						}
-						else
+
+					}
+					else
+					{
+						Ogre::Vector3 selectionPos =
+								mEngine->selectionPosition();
+						Ogre::Plane plane = Ogre::Plane(Ogre::Vector3::UNIT_Y,
+								selectionPos.y);
+						plane.normalise();
+						//what we want is a vector of translation from the selection's position to a new one.
+						//first we see where falls a ray that we cast from the cam to the last coordinates on the viewport
+						//(the idea is to cast a ray from the camera to a horizontal plane at the base of the selection)
+						Ogre::Ray ray =
+								mEngine->camera()->cam()->getCameraToViewportRay(
+										_x / w, _y / h);
+						std::pair<bool, Ogre::Real> result = ray.intersects(
+								plane);
+						if (result.first)
 						{
-							Ogre::Vector3 selectionPos = mEngine->selectionPosition();
-							Ogre::Plane plane = Ogre::Plane(Ogre::Vector3::UNIT_Y, selectionPos.y);
-							plane.normalise();
-							//what we want is a vector of translation from the selection's position to a new one.
-							//first we see where falls a ray that we cast from the cam to the last coordinates on the viewport
-							//(the idea is to cast a ray from the camera to a horizontal plane at the base of the selection)
-							Ogre::Ray ray = mEngine->camera()->cam()->getCameraToViewportRay(_x / w, _y / h);
-							std::pair<bool, Ogre::Real> result = ray.intersects(plane);
+							Ogre::Vector3 src = ray.getPoint(result.second);
+							//then we do the same with the new coordinates on the viewport
+							ray =
+									mEngine->camera()->cam()->getCameraToViewportRay(
+											x / w, y / h);
+							result = ray.intersects(plane);
 							if (result.first)
 							{
-								Ogre::Vector3 src = ray.getPoint(result.second);
-								//then we do the same with the new coordinates on the viewport
-								ray = mEngine->camera()->cam()->getCameraToViewportRay(x / w, y / h);
-								result = ray.intersects(plane);
-								if (result.first)
-								{
-									Ogre::Vector3 dst = ray.getPoint(result.second);
-									//finally, we translate the selection according to the vector given by substracting two points.
-									Ogre::Vector3 t = dst - src;
-									//just making sure we have an horizontal translation (should be useless since plane is horizontal)
-									t.y = 0.f;
-									mEngine->translateSelection(t);
-									mSelectionTranslated = true;
-									update();
-								}
+								Ogre::Vector3 dst = ray.getPoint(result.second);
+								//finally, we translate the selection according to the vector given by substracting two points.
+								Ogre::Vector3 t = dst - src;
+								//just making sure we have an horizontal translation (should be useless since plane is horizontal)
+								t.y = 0.f;
+								mEngine->translateSelection(t);
+								mSelectionTranslated = true;
+								update();
 							}
+						}
 
-						}
-						break;
-					case QSteelWidget::TM_ROTATION:
+					}
+					break;
+				case QSteelWidget::TM_ROTATION:
 
-						if (e->modifiers() & Qt::ShiftModifier)
-						{
-							quickLog("rotation with shift modifier is not implemented yet !");
-						}
-						else
-						{
-							Ogre::Vector3 r = Ogre::Vector3(.0f, 180.f * (x - _x) / (w / 2.f), .0f);
-							mEngine->rotateSelection(r);
-							mSelectionRotated = true;
-							update();
-						}
-						break;
-					default:
-						break;
-				}//end of switch (mTransformationMode)
-			}//end of if (mEngine->hasSelection())
-		}//end of if(!mIsSelectionTransformingAborted)
-		//to keep last
+					if (e->modifiers() & Qt::ShiftModifier)
+					{
+						quickLog(
+								"rotation with shift modifier is not implemented yet !");
+					}
+					else
+					{
+						Ogre::Vector3 r = Ogre::Vector3(.0f,
+								180.f * (x - _x) / (w / 2.f), .0f);
+						mEngine->rotateSelection(r);
+						mSelectionRotated = true;
+						update();
+					}
+					break;
+				default:
+					break;
+				} //end of switch (mTransformationMode)
+			} //end of if (mEngine->hasSelection())
+		} //end of if(!mIsSelectionTransformingAborted)
+		  //to keep last
 		mLastMousePosition = e->pos();
 	}
 	e->accept();
@@ -595,15 +650,28 @@ void QSteelWidget::releaseInputs(void)
 	releaseKeyboard();
 }
 
+void QSteelWidget::saveCurrentLevel()
+{
+	if (mLevel == NULL)
+	{
+		quickLog("QSteelWidget::saveCurrentLevel(): no current level to save.");
+	}
+	else
+	{
+		mLevel->save();
+	}
+}
+
 void QSteelWidget::setLevel(QString projectRootdir, QString levelName)
 {
 	cout
-			<< (("QSteelWidget::setLevel(projectRootdir:" + projectRootdir + ", levelName=" + levelName + ")").toStdString())
-			<< endl;
+			<< (("QSteelWidget::setLevel(projectRootdir:" + projectRootdir
+					+ ", levelName=" + levelName + ")").toStdString()) << endl;
 	if (mEngine)
 	{
 		mEngine->setRootdir(Ogre::String(projectRootdir.toStdString().c_str()));
-		mLevel = mEngine->createLevel(Ogre::String(levelName.toStdString().c_str()));
+		mLevel = mEngine->createLevel(
+				Ogre::String(levelName.toStdString().c_str()));
 	}
 	else
 	{
@@ -658,7 +726,9 @@ QVector3D QSteelWidget::agentPosition(unsigned long id)
 	Steel::Agent *t = mLevel->getAgent((Steel::AgentId) id);
 	if (t == NULL)
 	{
-		quickLog("QSteelWidget::agentPosition(): no agent for id " + QString::number(id) + ".");
+		quickLog(
+				"QSteelWidget::agentPosition(): no agent for id "
+						+ QString::number(id) + ".");
 		return QVector3D();
 	}
 	//TODO: return a Descriptor instead ?
@@ -666,7 +736,9 @@ QVector3D QSteelWidget::agentPosition(unsigned long id)
 
 	if (model == NULL)
 	{
-		quickLog("QSteelWidget::agentPosition(): no OgreModel for agent" + QString::number(id) + ".");
+		quickLog(
+				"QSteelWidget::agentPosition(): no OgreModel for agent"
+						+ QString::number(id) + ".");
 		return QVector3D();
 	}
 
@@ -683,31 +755,30 @@ OIS::KeyEvent QSteelWidget::qtToOisKeyEvent(QKeyEvent *e)
 	OIS::KeyCode keycode = OIS::KC_ESCAPE;
 	switch (e->key())
 	{
-		case Qt::Key_W:
-			keycode = OIS::KC_W;
-			break;
-		case Qt::Key_A:
-			keycode = OIS::KC_A;
-			break;
-		case Qt::Key_S:
-			keycode = OIS::KC_S;
-			break;
-		case Qt::Key_D:
-			keycode = OIS::KC_D;
-			break;
-		case Qt::Key_Space:
-			keycode = OIS::KC_SPACE;
-			break;
-		case Qt::Key_Shift:
-			keycode = OIS::KC_LSHIFT;
-			break;
-		case Qt::Key_Escape:
-			keycode = OIS::KC_ESCAPE;
-			break;
-		default:
-			break;
+	case Qt::Key_W:
+		keycode = OIS::KC_W;
+		break;
+	case Qt::Key_A:
+		keycode = OIS::KC_A;
+		break;
+	case Qt::Key_S:
+		keycode = OIS::KC_S;
+		break;
+	case Qt::Key_D:
+		keycode = OIS::KC_D;
+		break;
+	case Qt::Key_Space:
+		keycode = OIS::KC_SPACE;
+		break;
+	case Qt::Key_Shift:
+		keycode = OIS::KC_LSHIFT;
+		break;
+	case Qt::Key_Escape:
+		keycode = OIS::KC_ESCAPE;
+		break;
+	default:
+		break;
 	}
 	OIS::KeyEvent evt(mEngine->inputMan()->keyboard(), keycode, 0);
 	return evt;
 }
-

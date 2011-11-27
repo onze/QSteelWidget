@@ -1,25 +1,47 @@
 TEMPLATE = lib
+CONFIG += qt
 QT += core gui
 
-INCLUDEPATH += qsteelwidget
-INCLUDEPATH += ../qsteelwidget
+UI_DIR = build
+RCC_DIR = build
+MOC_DIR = build
+OBJECTS_DIR = build
 
-INCLUDEPATH += /usr/include/python2.6
-INCLUDEPATH += /usr/local/include/shiboken
-INCLUDEPATH += /usr/local/include/PySide
-INCLUDEPATH += /usr/local/include/PySide/QtCore
-INCLUDEPATH += /usr/local/include/PySide/QtGui
+INCLUDEPATH += PyQSteelWidget
+INCLUDEPATH += ../qsteelwidget
+INCLUDEPATH += ../pyqsteelwidget
+
+INCLUDEPATH += /usr/include/python2.7
+
+#global pyside install
+INCLUDEPATH += /usr/include/shiboken
+INCLUDEPATH += /usr/include/PySide
+INCLUDEPATH += /usr/include/PySide/QtCore
+INCLUDEPATH += /usr/include/PySide/QtGui
+
+#local pyside install
+#INCLUDEPATH += /home/onze/pkg/pyside-sandbox/include/shiboken
+#INCLUDEPATH += /home/onze/pkg/pyside-sandbox/include/PySide
+#INCLUDEPATH += /home/onze/pkg/pyside-sandbox/include/PySide/QtCore
+#INCLUDEPATH += /home/onze/pkg/pyside-sandbox/include/PySide/QtGui
 
 INCLUDEPATH += /usr/local/include/OGRE
 INCLUDEPATH += /media/z2/cpp/1105/Steel/Steel/include
 
-LIBS += -ldl -lpython2.6
+INCLUDEPATH += $(`pkg-config pyside --cflags`)
+INCLUDEPATH += $(`pkg-config shiboken --cflags`)
+
+LIBS += -ldl 
+LIBS += -lpython2.7
 LIBS += -lpyside
 LIBS += -lshiboken
-LIBS += -l:/media/z2/cpp/1105/Steel/Debug/libSteel.so
-LIBS += -L.. -lQSteelWidget
+#LIBS += $(`pkg-config pyside --libs`)
+#LIBS += $(`pkg-config shiboken --libs`)
+LIBS += -L/media/z2/cpp/1105/Steel/Debug/ -lSteel
+LIBS += -L../qsteelwidget/build -lQSteelWidget
 
-TARGET = ../PyQSteelWidget
+
+TARGET = build/PyQSteelWidget
 
 SOURCES += \
     PyQSteelWidget/pyqsteelwidget_module_wrapper.cpp \

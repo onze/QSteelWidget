@@ -3,7 +3,6 @@
 	<name>QSteelWidget</name>
 	<comment></comment>
 	<projects>
-		<project>Steel</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>

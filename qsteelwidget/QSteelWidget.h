@@ -11,6 +11,8 @@
 #include <QList>
 #include <QVector3D>
 #include <QVector4D>
+
+#include <QtCore>
 #include <QWidget>
 #include <OgreLog.h>
 
@@ -18,22 +20,28 @@
 
 class QSteelWidget: public QWidget, Ogre::LogListener
 {
+
 Q_OBJECT
+
 public:
 	QSteelWidget(QWidget * parent = 0L);
-	virtual ~QSteelWidget();
+	virtual
+	~QSteelWidget();
 	/**
 	 * allows loading from the given folder (path).
 	 * type should probably be FileSystem.
 	 */
-	void addResourceLocation(QString path, QString type, QString resGroup);
-	///Instanciates a new Agent at the dropping position. All required resources are expected to be ready.
-	unsigned long createAgent(QString meshName, QVector3D pos, QVector4D rot, bool involvesNewResources = false);
+	void
+	addResourceLocation(QString path, QString type, QString resGroup);
+	///Instanciates a new Agent at the droping position. All required resources are expected to be ready.
+	unsigned long createAgent(	QString meshName,
+								QVector3D pos,
+								QVector4D rot,
+								bool involvesNewResources);
 	inline bool isSteelReady()
 	{
 		return mIsSteelReady;
 	}
-	;
 	/**
 	 * Called at first apparition in a qt app.
 	 * @param e
@@ -44,7 +52,7 @@ public:
 	 * @param e
 	 */
 	virtual void paintEvent(QPaintEvent *e);
-	virtual QPaintEngine *paintEngine() const;
+	virtual QPaintEngine* paintEngine() const;
 	virtual void resizeEvent(QResizeEvent *e);
 	virtual void dragEnterEvent(QDragEnterEvent *e);
 	virtual void dragMoveEvent(QDragMoveEvent *e);
@@ -60,6 +68,7 @@ public:
 	 * @param resGroup
 	 */
 	void removeResourceLocation(QString path, QString resGroup);
+	void saveCurrentLevel();
 	/**
 	 * sets the current level the widget is dealing with.
 	 * @param name: name of the level.
@@ -68,17 +77,16 @@ public:
 	QVector3D dropTargetPosition(QVector3D delta);
 	QVector4D dropTargetRotation();
 	QVector3D agentPosition(unsigned long id);
-
 	QVector3D cameraPosition();
 	void cameraPosition(QVector3D pos);
 	QVector4D cameraRotation();
 	void cameraRotation(QVector4D rot);
 
 public slots:
-	virtual void moveEvent(QMoveEvent *e);
 	virtual void mouseMoveEvent(QMouseEvent *e);
 	virtual void mousePressEvent(QMouseEvent *e);
 	virtual void mouseReleaseEvent(QMouseEvent *e);
+	virtual void moveEvent(QMoveEvent *e);
 	virtual void keyPressEvent(QKeyEvent *e);
 	virtual void keyReleaseEvent(QKeyEvent *e);
 	virtual void mouseDoubleClickEvent(QMouseEvent *e);
@@ -88,9 +96,8 @@ public slots:
 	 * engine mode only.
 	 * this is called at regular interval to update the engine.
 	 */
-	void engineModeUpdate(void);
-
-signals:
+	void
+	engineModeUpdate(void);signals:
 	///emitted when steel has been initialised and is ready.
 	void onSteelReady();
 	///emitted when steel is about to be closed.
@@ -135,8 +142,10 @@ protected:
 	{
 		quickLog(Ogre::StringConverter::toString(v));
 	}
-	OIS::MouseEvent qtToOisMouseEvent(QMouseEvent *e);
-	OIS::KeyEvent qtToOisKeyEvent(QKeyEvent *e);
+	OIS::MouseEvent
+	qtToOisMouseEvent(QMouseEvent *e);
+	OIS::KeyEvent
+	qtToOisKeyEvent(QKeyEvent *e);
 	///setup the engine.
 	void initSteel(void);
 	///input is grabbed and dispatched to the engine.
@@ -144,7 +153,8 @@ protected:
 	///engine is on pause.
 	void stopEngineMode(void);
 	///grab inputs (game mode)
-	void grabInputs(void);
+	void
+	grabInputs(void);
 	///release inputs /editor mode
 	void releaseInputs(void);
 	bool mIsSteelReady;
@@ -173,6 +183,5 @@ protected:
 	bool mIsSelectionTransformingAborted;
 	///selection goes back to there when a translation is aborted.
 	Ogre::Vector3 mSelectionPosBeforeTransformation;
-
 };
 #endif // QtOgreWidget_H

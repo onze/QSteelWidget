@@ -1,4 +1,4 @@
-#Sat Jun 11 21:34:07 EDT 2011
+#Sun Sep 25 15:26:27 EDT 2011
 eclipse.preferences.version=1
 environment/project/0.1419871675.1386648675.720925846/OGRE_LOC/delimiter=\:
 environment/project/0.1419871675.1386648675.720925846/OGRE_LOC/operation=append
@@ -10,3 +10,27 @@ environment/project/0.1419871675.1386648675/OGRE_LOC/operation=append
 environment/project/0.1419871675.1386648675/OGRE_LOC/value=/media/z2/src/ogre_src_v1-7-2/
 environment/project/0.1419871675.1386648675/append=true
 environment/project/0.1419871675.1386648675/appendContributed=true
+environment/project/cdt.managedbuild.toolchain.gnu.base.1424284600.244278017/OGRE_LOC/delimiter=\:
+environment/project/cdt.managedbuild.toolchain.gnu.base.1424284600.244278017/OGRE_LOC/operation=append
+environment/project/cdt.managedbuild.toolchain.gnu.base.1424284600.244278017/OGRE_LOC/value=/media/z2/src/ogre
+environment/project/cdt.managedbuild.toolchain.gnu.base.1424284600.244278017/WELD_HOME/delimiter=\:
+environment/project/cdt.managedbuild.toolchain.gnu.base.1424284600.244278017/WELD_HOME/operation=append
+environment/project/cdt.managedbuild.toolchain.gnu.base.1424284600.244278017/WELD_HOME/value=/media/z2/python/1105/Weld
+environment/project/cdt.managedbuild.toolchain.gnu.base.1424284600.244278017/append=true
+environment/project/cdt.managedbuild.toolchain.gnu.base.1424284600.244278017/appendContributed=true
+environment/project/cdt.managedbuild.toolchain.gnu.base.1424284600.814978061/OGRE_LOC/delimiter=\:
+environment/project/cdt.managedbuild.toolchain.gnu.base.1424284600.814978061/OGRE_LOC/operation=append
+environment/project/cdt.managedbuild.toolchain.gnu.base.1424284600.814978061/OGRE_LOC/value=/media/z2/src/ogre
+environment/project/cdt.managedbuild.toolchain.gnu.base.1424284600.814978061/WELD_HOME/delimiter=\:
+environment/project/cdt.managedbuild.toolchain.gnu.base.1424284600.814978061/WELD_HOME/operation=append
+environment/project/cdt.managedbuild.toolchain.gnu.base.1424284600.814978061/WELD_HOME/value=/media/z2/python/1105/Weld
+environment/project/cdt.managedbuild.toolchain.gnu.base.1424284600.814978061/append=true
+environment/project/cdt.managedbuild.toolchain.gnu.base.1424284600.814978061/appendContributed=true
+environment/project/cdt.managedbuild.toolchain.gnu.base.1424284600/OGRE_LOC/delimiter=\:
+environment/project/cdt.managedbuild.toolchain.gnu.base.1424284600/OGRE_LOC/operation=append
+environment/project/cdt.managedbuild.toolchain.gnu.base.1424284600/OGRE_LOC/value=/media/z2/src/ogre
+environment/project/cdt.managedbuild.toolchain.gnu.base.1424284600/WELD_HOME/delimiter=\:
+environment/project/cdt.managedbuild.toolchain.gnu.base.1424284600/WELD_HOME/operation=append
+environment/project/cdt.managedbuild.toolchain.gnu.base.1424284600/WELD_HOME/value=/media/z2/python/1105/Weld
+environment/project/cdt.managedbuild.toolchain.gnu.base.1424284600/append=true
+environment/project/cdt.managedbuild.toolchain.gnu.base.1424284600/appendContributed=true
