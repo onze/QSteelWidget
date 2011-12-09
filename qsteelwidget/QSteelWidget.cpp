@@ -34,11 +34,7 @@ typedef Steel::Debug Debug;
 #include "unittests.h"
 
 QSteelWidget::QSteelWidget(QWidget * parent) :
-		QWidget(parent), Ogre::LogListener(), mIsSteelReady(false), mEngine(0), mIsInputGrabbed(
-				false), mTimer(0), mLevel(NULL), mLevelName(""), mProjectRootdir(
-				"./"), mSelectionTranslated(false), mSelectionRotated(false), mTransformationMode(
-				QSteelWidget::TM_TRANSLATION), mIsTransformingSelection(false), mIsSelectionTransformingAborted(
-				false)
+		QWidget(parent), Ogre::LogListener(), mIsSteelReady(false), mEngine(0), mIsInputGrabbed(false), mTimer(0), mLevel(NULL), mLevelName(""), mProjectRootdir("./"), mSelectionTranslated(false), mSelectionRotated(false), mTransformationMode(QSteelWidget::TM_TRANSLATION), mIsTransformingSelection(false), mIsSelectionTransformingAborted(false)
 {
 	setAttribute(Qt::WA_NoSystemBackground);
 	setAttribute(Qt::WA_OpaquePaintEvent);
@@ -65,15 +61,17 @@ void QSteelWidget::addResourceLocation(	QString path,
 										QString resGroup)
 {
 	if (mEngine == NULL)
-		quickLog(
-				"could not add resource location {path:" + path + ", type:"
-						+ type + ", res group:" + resGroup + "}.");
+	{
+		quickLog("could not add resource location {path:" + path + ", type:"
+				+ type + ", res group:" + resGroup + "}.");
+	}
 	else
 	{
-		Ogre::ResourceGroupManager::getSingletonPtr()->addResourceLocation(
-				convert(path), convert(type), convert(resGroup), false);
-		Ogre::ResourceGroupManager::getSingletonPtr()->initialiseResourceGroup(
-				convert(resGroup));
+		Ogre::ResourceGroupManager::getSingletonPtr()->addResourceLocation(	convert(path),
+																			convert(type),
+																			convert(resGroup),
+																			false);
+		Ogre::ResourceGroupManager::getSingletonPtr()->initialiseResourceGroup(convert(resGroup));
 	}
 }
 
@@ -102,20 +100,20 @@ unsigned long QSteelWidget::createAgent(QString meshName,
 										QVector4D rot,
 										bool involvesNewResources)
 {
-	quickLog(
-			"QSteelWidget::createAgent(meshName=" + meshName + " pos="
-					+ QString("(x=%1, y=%2, z=%3)").arg(pos.x()).arg(pos.y()).arg(
-							pos.z()) + " rot="
-					+ QString("(x=%1, y=%2, z=%3, w=%4)").arg(rot.x()).arg(
-							rot.y()).arg(rot.z()).arg(rot.w()));
+	Debug::log("QSteelWidget::createAgent(meshName=")(meshName.toStdString());
+	Debug::log(" pos=")(QString("(x=%1, y=%2, z=%3)").arg(pos.x()).arg(pos.y()).arg(pos.z()).toStdString());
+	Debug::log(" rot=")(QString("(x=%1, y=%2, z=%3, w=%4)").arg(rot.x()).arg(rot.y()).arg(rot.z()).arg(rot.w()).toStdString());
+		Debug::log.endl();
 	if (mLevel == NULL)
 	{
 		quickLog("mLevel == NULL !");
 		return Steel::INVALID_ID;
 	}
-//	Ogre::Quaternion r = mEngine->camera()->camNode()->getOrientation();
-	Steel::AgentId id = mLevel->newAgent(convert(meshName), convert(pos),
-			convert(rot), involvesNewResources);
+	Ogre::Quaternion r = mEngine->camera()->camNode()->getOrientation();
+	Steel::AgentId id = mLevel->newAgent(	convert(meshName),
+											convert(pos),
+											convert(rot),
+											involvesNewResources);
 	update();
 	quickLog("");
 	return (unsigned long) id;
@@ -160,9 +158,8 @@ void QSteelWidget::dropEvent(QDropEvent *e)
 		QList<QUrl> urlList = e->mimeData()->urls();
 		if (urlList.size() > 0)
 		{
-			quickLog(Ogre::String(urlList[0].toString().toStdString()));
-			emit onItemDropped(
-					QString(urlList[0].toString().toStdString().c_str()));
+			Debug::log(urlList[0].toString().toStdString());
+			emit onItemDropped(QString(urlList[0].toString()));
 		}
 	}
 	e->setAccepted(true);
@@ -214,8 +211,12 @@ void QSteelWidget::initSteel()
 
 #endif
 
-	mEngine->embeddedInit("plugins.cfg", widgetHandle.toStdString(), width(),
-			height(), "qsteelwidget.log", this);
+	mEngine->embeddedInit(	"plugins.cfg",
+							widgetHandle.toStdString(),
+							width(),
+							height(),
+							"qsteelwidget.log",
+							this);
 	Debug::log.endl()("======================").endl();
 	Debug::log("= steel widget ready =").endl();
 	Debug::log("======================").endl().endl();
@@ -250,24 +251,20 @@ void QSteelWidget::keyReleaseEvent(QKeyEvent *e)
 		{
 		case Qt::Key_R:
 			mTransformationMode = QSteelWidget::TM_ROTATION;
-			quickLog(
-					"QSteelWidget::keyReleaseEvent(): switched to rotation mode.");
+			quickLog("QSteelWidget::keyReleaseEvent(): switched to rotation mode.");
 			break;
 		case Qt::Key_S:
 			mTransformationMode = QSteelWidget::TM_SCALE;
-			quickLog(
-					"QSteelWidget::keyReleaseEvent(): switched to scale mode.");
+			quickLog("QSteelWidget::keyReleaseEvent(): switched to scale mode.");
 			break;
 		case Qt::Key_T:
 			mTransformationMode = QSteelWidget::TM_TRANSLATION;
-			quickLog(
-					"QSteelWidget::keyReleaseEvent(): switched to translation mode.");
+			quickLog("QSteelWidget::keyReleaseEvent(): switched to translation mode.");
 			break;
 		case Qt::Key_Delete:
 			if (mEngine->hasSelection())
 			{
-				quickLog(
-						"QSteelWidget::keyReleaseEvent(): deleting selection.");
+				quickLog("QSteelWidget::keyReleaseEvent(): deleting selection.");
 				QList<unsigned long> oldSelection =
 						QList<unsigned long>::fromStdList(mEngine->selection());
 				mEngine->deleteSelection();
@@ -277,8 +274,7 @@ void QSteelWidget::keyReleaseEvent(QKeyEvent *e)
 			}
 			else
 			{
-				quickLog(
-						"QSteelWidget::keyReleaseEvent(): no selection to delete.");
+				quickLog("QSteelWidget::keyReleaseEvent(): no selection to delete.");
 			}
 
 			break;
@@ -325,12 +321,11 @@ QSteelWidget::paintEngine() const
 void QSteelWidget::removeResourceLocation(QString path, QString resGroup)
 {
 	if (mEngine == NULL)
-		quickLog(
-				"could not remove resource group \'" + resGroup
-						+ "\': engine is already deleted.");
+		quickLog("could not remove resource group \'" + resGroup
+				+ "\': engine is already deleted.");
 	else
-		Ogre::ResourceGroupManager::getSingletonPtr()->removeResourceLocation(
-				convert(path), convert(resGroup));
+		Ogre::ResourceGroupManager::getSingletonPtr()->removeResourceLocation(	convert(path),
+																				convert(resGroup));
 }
 
 void QSteelWidget::resizeEvent(QResizeEvent *e)
@@ -428,11 +423,9 @@ void QSteelWidget::mouseReleaseEvent(QMouseEvent *e)
 				std::list<Steel::AgentId> sel = mEngine->selection();
 				for (std::list<Steel::AgentId>::iterator it = sel.begin();
 						it != sel.end(); ++it)
-					emit onAgentUpdated(
-							*it,
-							"position",
-							convert(
-									mLevel->getAgent(*it)->ogreModel()->position()));
+					emit onAgentUpdated(*it,
+										"position",
+										convert(mLevel->getAgent(*it)->ogreModel()->position()));
 				mSelectionTranslated = false;
 			}
 			if (mSelectionRotated)
@@ -440,11 +433,9 @@ void QSteelWidget::mouseReleaseEvent(QMouseEvent *e)
 				std::list<Steel::AgentId> sel = mEngine->selection();
 				for (std::list<Steel::AgentId>::iterator it = sel.begin();
 						it != sel.end(); ++it)
-					emit onAgentUpdated(
-							*it,
-							"rotation",
-							convert(
-									mLevel->getAgent(*it)->ogreModel()->rotation()));
+					emit onAgentUpdated(*it,
+										"rotation",
+										convert(mLevel->getAgent(*it)->ogreModel()->rotation()));
 				mSelectionRotated = false;
 			}
 			mIsSelectionTransformingAborted = false;
@@ -453,8 +444,7 @@ void QSteelWidget::mouseReleaseEvent(QMouseEvent *e)
 			if (mIsTransformingSelection)
 			{
 				mIsSelectionTransformingAborted = true;
-				mEngine->setSelectionPosition(
-						mSelectionPosBeforeTransformation);
+				mEngine->setSelectionPosition(mSelectionPosBeforeTransformation);
 				update();
 			}
 			break;
@@ -520,7 +510,7 @@ void QSteelWidget::mouseMoveEvent(QMouseEvent *e)
 										* Ogre::Vector3::UNIT_Z;
 						normal.y = .0f;
 						Ogre::Plane plane = Ogre::Plane(normal,
-								Ogre::Vector3::ZERO);
+														Ogre::Vector3::ZERO);
 						//and since I don't know how to compute the distance to feed it, I let it at (0,0,0).
 						//ask IT its distance to where I wanted to put it (the selection),
 						Ogre::Real dist = plane.getDistance(selectionPos);
@@ -532,18 +522,22 @@ void QSteelWidget::mouseMoveEvent(QMouseEvent *e)
 						//and passing by the last mouse coordinates hits the mentionned plane, and dst is the same with a ray
 						//passing through the current mouse coordinates.
 						Ogre::Ray ray =
-								mEngine->camera()->cam()->getCameraToViewportRay(
-										_x / w, _y / h);
-						std::pair<bool, Ogre::Real> result = ray.intersects(
-								plane);
+								mEngine->camera()->cam()->getCameraToViewportRay(	_x
+																							/ w,
+																					_y
+																							/ h);
+						std::pair<bool, Ogre::Real> result =
+								ray.intersects(plane);
 						if (result.first)
 						{
 							//							quickLog("1");
 							Ogre::Vector3 src = ray.getPoint(result.second);
 							//then we do the same with the new coordinates on the viewport
 							ray =
-									mEngine->camera()->cam()->getCameraToViewportRay(
-											x / w, y / h);
+									mEngine->camera()->cam()->getCameraToViewportRay(	x
+																								/ w,
+																						y
+																								/ h);
 							result = ray.intersects(plane);
 							if (result.first)
 							{
@@ -553,8 +547,8 @@ void QSteelWidget::mouseMoveEvent(QMouseEvent *e)
 								Ogre::Vector3 t = dst - src;
 								t.y = t.y > 10.f ? .0f :
 										t.y < -10.f ? 0.f : t.y;
-								mEngine->translateSelection(
-										Ogre::Vector3::UNIT_Y * t);
+								mEngine->translateSelection(Ogre::Vector3::UNIT_Y
+										* t);
 								mSelectionTranslated = true;
 								update();
 							}
@@ -566,23 +560,27 @@ void QSteelWidget::mouseMoveEvent(QMouseEvent *e)
 						Ogre::Vector3 selectionPos =
 								mEngine->selectionPosition();
 						Ogre::Plane plane = Ogre::Plane(Ogre::Vector3::UNIT_Y,
-								selectionPos.y);
+														selectionPos.y);
 						plane.normalise();
 						//what we want is a vector of translation from the selection's position to a new one.
 						//first we see where falls a ray that we cast from the cam to the last coordinates on the viewport
 						//(the idea is to cast a ray from the camera to a horizontal plane at the base of the selection)
 						Ogre::Ray ray =
-								mEngine->camera()->cam()->getCameraToViewportRay(
-										_x / w, _y / h);
-						std::pair<bool, Ogre::Real> result = ray.intersects(
-								plane);
+								mEngine->camera()->cam()->getCameraToViewportRay(	_x
+																							/ w,
+																					_y
+																							/ h);
+						std::pair<bool, Ogre::Real> result =
+								ray.intersects(plane);
 						if (result.first)
 						{
 							Ogre::Vector3 src = ray.getPoint(result.second);
 							//then we do the same with the new coordinates on the viewport
 							ray =
-									mEngine->camera()->cam()->getCameraToViewportRay(
-											x / w, y / h);
+									mEngine->camera()->cam()->getCameraToViewportRay(	x
+																								/ w,
+																						y
+																								/ h);
 							result = ray.intersects(plane);
 							if (result.first)
 							{
@@ -603,13 +601,14 @@ void QSteelWidget::mouseMoveEvent(QMouseEvent *e)
 
 					if (e->modifiers() & Qt::ShiftModifier)
 					{
-						quickLog(
-								"rotation with shift modifier is not implemented yet !");
+						quickLog("rotation with shift modifier is not implemented yet !");
 					}
 					else
 					{
 						Ogre::Vector3 r = Ogre::Vector3(.0f,
-								180.f * (x - _x) / (w / 2.f), .0f);
+														180.f * (x - _x)
+																/ (w / 2.f),
+														.0f);
 						mEngine->rotateSelection(r);
 						mSelectionRotated = true;
 						update();
@@ -652,12 +651,14 @@ void QSteelWidget::releaseInputs(void)
 
 void QSteelWidget::saveCurrentLevel()
 {
+	Debug::log("QSteelWidget::saveCurrentLevel():");
 	if (mLevel == NULL)
 	{
-		quickLog("QSteelWidget::saveCurrentLevel(): no current level to save.");
+		Debug::log("no current level to save.").endl();
 	}
 	else
 	{
+		Debug::log.endl();
 		mLevel->save();
 	}
 }
@@ -670,8 +671,8 @@ void QSteelWidget::setLevel(QString projectRootdir, QString levelName)
 	if (mEngine)
 	{
 		mEngine->setRootdir(Ogre::String(projectRootdir.toStdString().c_str()));
-		mLevel = mEngine->createLevel(
-				Ogre::String(levelName.toStdString().c_str()));
+		mLevel =
+				mEngine->createLevel(Ogre::String(levelName.toStdString().c_str()));
 	}
 	else
 	{
@@ -726,9 +727,8 @@ QVector3D QSteelWidget::agentPosition(unsigned long id)
 	Steel::Agent *t = mLevel->getAgent((Steel::AgentId) id);
 	if (t == NULL)
 	{
-		quickLog(
-				"QSteelWidget::agentPosition(): no agent for id "
-						+ QString::number(id) + ".");
+		quickLog("QSteelWidget::agentPosition(): no agent for id "
+				+ QString::number(id) + ".");
 		return QVector3D();
 	}
 	//TODO: return a Descriptor instead ?
@@ -736,9 +736,8 @@ QVector3D QSteelWidget::agentPosition(unsigned long id)
 
 	if (model == NULL)
 	{
-		quickLog(
-				"QSteelWidget::agentPosition(): no OgreModel for agent"
-						+ QString::number(id) + ".");
+		quickLog("QSteelWidget::agentPosition(): no OgreModel for agent"
+				+ QString::number(id) + ".");
 		return QVector3D();
 	}
 

@@ -26,14 +26,15 @@
 								<option id="gnu.cpp.compiler.option.include.paths.1435442847" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/Steel/Steel/include}&quot;"/>
 									<listOptionValue builtIn="false" value="/media/z2/src/ogre/OgreMain/include"/>
-									<listOptionValue builtIn="false" value="/usr/include/PySide/"/>
+									<listOptionValue builtIn="false" value="/usr/include/qt4/Qt"/>
 								</option>
-								<option id="gnu.cpp.compiler.option.include.files.1008742585" name="Include files (-include)" superClass="gnu.cpp.compiler.option.include.files" valueType="includeFiles">
-									<listOptionValue builtIn="false" value="/usr/include/PySide/"/>
-								</option>
+								<option id="gnu.cpp.compiler.option.include.files.1008742585" name="Include files (-include)" superClass="gnu.cpp.compiler.option.include.files"/>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.1909790010" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.c.compiler.base.862802225" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.base">
+								<option id="gnu.c.compiler.option.include.paths.1979644667" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" valueType="includePath">
+									<listOptionValue builtIn="false" value="/usr/include/PySide"/>
+								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.22853661" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.c.linker.base.74374392" name="GCC C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.base"/>
@@ -79,23 +80,27 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/Steel/Steel/include}&quot;"/>
 									<listOptionValue builtIn="false" value="/media/z2/src/ogre/OgreMain/include"/>
 									<listOptionValue builtIn="false" value="/usr/include/qt4"/>
-									<listOptionValue builtIn="false" value="/usr/include/PySide/"/>
+									<listOptionValue builtIn="false" value="/usr/include/qt4/Qt"/>
+									<listOptionValue builtIn="false" value="/usr/include/qt4/QtGui"/>
+									<listOptionValue builtIn="false" value="/usr/include/qt4/QtCore"/>
 								</option>
-								<option id="gnu.cpp.compiler.option.include.files.1024171313" name="Include files (-include)" superClass="gnu.cpp.compiler.option.include.files" valueType="includeFiles">
-									<listOptionValue builtIn="false" value="/usr/include/PySide/"/>
-								</option>
+								<option id="gnu.cpp.compiler.option.include.files.1024171313" name="Include files (-include)" superClass="gnu.cpp.compiler.option.include.files"/>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.948920149" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.c.compiler.base.1939180093" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.base">
+								<option id="gnu.c.compiler.option.include.paths.1802340374" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" valueType="includePath">
+									<listOptionValue builtIn="false" value="/usr/include/PySide"/>
+								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.1017475837" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.c.linker.base.805413844" name="GCC C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.base"/>
 							<tool id="cdt.managedbuild.tool.gnu.cpp.linker.base.749557536" name="GCC C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker.base">
 								<option id="gnu.cpp.link.option.paths.816807993" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" valueType="libPaths">
 									<listOptionValue builtIn="false" value="/media/z2/src/ogre/OgreMain/include"/>
-									<listOptionValue builtIn="false" value="/usr/include/qt4"/>
-									<listOptionValue builtIn="false" value="/usr/include/PySide/"/>
 									<listOptionValue builtIn="false" value="/media/z2/cpp/1105/Steel/Steel/include"/>
+									<listOptionValue builtIn="false" value="/usr/include/qt4"/>
+									<listOptionValue builtIn="false" value="/usr/include/qt4/QtCore"/>
+									<listOptionValue builtIn="false" value="/usr/include/qt4/QtGUi"/>
 								</option>
 								<option id="gnu.cpp.link.option.libs.1678761287" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs"/>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.linker.input.1080059495" superClass="cdt.managedbuild.tool.gnu.cpp.linker.input">
@@ -135,14 +140,15 @@
 								<option id="gnu.cpp.compiler.option.include.paths.396458349" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/Steel/Steel/include}&quot;"/>
 									<listOptionValue builtIn="false" value="/media/z2/src/ogre/OgreMain/include"/>
-									<listOptionValue builtIn="false" value="/usr/include/PySide/"/>
+									<listOptionValue builtIn="false" value="/usr/include/qt4/Qt"/>
 								</option>
-								<option id="gnu.cpp.compiler.option.include.files.937267350" name="Include files (-include)" superClass="gnu.cpp.compiler.option.include.files" valueType="includeFiles">
-									<listOptionValue builtIn="false" value="/usr/include/PySide/"/>
-								</option>
+								<option id="gnu.cpp.compiler.option.include.files.937267350" name="Include files (-include)" superClass="gnu.cpp.compiler.option.include.files"/>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.361918721" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.c.compiler.base.1530275867" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.base">
+								<option id="gnu.c.compiler.option.include.paths.270831152" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" valueType="includePath">
+									<listOptionValue builtIn="false" value="/usr/include/PySide"/>
+								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.1915868425" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.c.linker.base.1993209780" name="GCC C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.base"/>
@@ -181,11 +187,11 @@
 		<scannerConfigBuildInfo instanceId="0.1419871675.1386648675.720925846">
 			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
 		</scannerConfigBuildInfo>
-		<scannerConfigBuildInfo instanceId="0.1419871675">
-			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.make.core.GCCStandardMakePerFileProfile"/>
-		</scannerConfigBuildInfo>
 		<scannerConfigBuildInfo instanceId="cdt.managedbuild.toolchain.gnu.base.1424284600;cdt.managedbuild.toolchain.gnu.base.1424284600.660848592;cdt.managedbuild.tool.gnu.c.compiler.base.862802225;cdt.managedbuild.tool.gnu.c.compiler.input.22853661">
 			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileC"/>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="0.1419871675">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.make.core.GCCStandardMakePerFileProfile"/>
 		</scannerConfigBuildInfo>
 		<scannerConfigBuildInfo instanceId="cdt.managedbuild.toolchain.gnu.base.1424284600.244278017;cdt.managedbuild.toolchain.gnu.base.1424284600.244278017.;cdt.managedbuild.tool.gnu.c.compiler.base.1939180093;cdt.managedbuild.tool.gnu.c.compiler.input.1017475837">
 			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileC"/>
@@ -193,11 +199,11 @@
 		<scannerConfigBuildInfo instanceId="cdt.managedbuild.toolchain.gnu.base.1424284600;cdt.managedbuild.toolchain.gnu.base.1424284600.660848592;cdt.managedbuild.tool.gnu.cpp.compiler.base.149293793;cdt.managedbuild.tool.gnu.cpp.compiler.input.1909790010">
 			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileCPP"/>
 		</scannerConfigBuildInfo>
-		<scannerConfigBuildInfo instanceId="0.1419871675.1386648675">
-			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.make.core.GCCStandardMakePerFileProfile"/>
-		</scannerConfigBuildInfo>
 		<scannerConfigBuildInfo instanceId="cdt.managedbuild.toolchain.gnu.base.1424284600.814978061;cdt.managedbuild.toolchain.gnu.base.1424284600.814978061.;cdt.managedbuild.tool.gnu.cpp.compiler.base.479824686;cdt.managedbuild.tool.gnu.cpp.compiler.input.361918721">
 			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileCPP"/>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="0.1419871675.1386648675">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.make.core.GCCStandardMakePerFileProfile"/>
 		</scannerConfigBuildInfo>
 		<scannerConfigBuildInfo instanceId="cdt.managedbuild.toolchain.gnu.base.1424284600.244278017;cdt.managedbuild.toolchain.gnu.base.1424284600.244278017.;cdt.managedbuild.tool.gnu.cpp.compiler.base.60946470;cdt.managedbuild.tool.gnu.cpp.compiler.input.948920149">
 			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileCPP"/>

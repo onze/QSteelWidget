@@ -3,8 +3,8 @@ QT_INC=/usr/include/qt4:/usr/include/qt4/Qt:/usr/include/qt4/QtCore:/usr/include
 
 STEEL_INC=/media/z2/cpp/1105/Steel/Steel/include
 
-#global pyside install
-TYPESYSTEMS=`pkg-config pyside --variable=typesystemdir`
+#global pyside install `pkg-config pyside --variable=typesystemdir`
+TYPESYSTEMS=/usr/share/PySide/typesystems
 
 #local pyside install
 #TYPESYSTEMS=/home/onze/pkg/pyside-sandbox/share/PySide/typesystems

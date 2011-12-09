@@ -31,8 +31,8 @@ public:
 	 * allows loading from the given folder (path).
 	 * type should probably be FileSystem.
 	 */
-	void
-	addResourceLocation(QString path, QString type, QString resGroup);
+	void addResourceLocation(QString path, QString type, QString resGroup);
+	QVector3D agentPosition(unsigned long id);
 	///Instanciates a new Agent at the droping position. All required resources are expected to be ready.
 	unsigned long createAgent(	QString meshName,
 								QVector3D pos,
@@ -76,7 +76,6 @@ public:
 	void setLevel(QString projectRootdir, QString levelName);
 	QVector3D dropTargetPosition(QVector3D delta);
 	QVector4D dropTargetRotation();
-	QVector3D agentPosition(unsigned long id);
 	QVector3D cameraPosition();
 	void cameraPosition(QVector3D pos);
 	QVector4D cameraRotation();
@@ -96,8 +95,9 @@ public slots:
 	 * engine mode only.
 	 * this is called at regular interval to update the engine.
 	 */
-	void
-	engineModeUpdate(void);signals:
+	void engineModeUpdate(void);
+
+signals:
 	///emitted when steel has been initialised and is ready.
 	void onSteelReady();
 	///emitted when steel is about to be closed.

@@ -27,6 +27,7 @@ INCLUDEPATH += /usr/include/PySide/QtGui
 
 INCLUDEPATH += /usr/local/include/OGRE
 INCLUDEPATH += /media/z2/cpp/1105/Steel/Steel/include
+INCLUDEPATH += /usr/include/jsoncpp
 
 INCLUDEPATH += $(`pkg-config pyside --cflags`)
 INCLUDEPATH += $(`pkg-config shiboken --cflags`)
@@ -39,6 +40,7 @@ LIBS += -lshiboken
 #LIBS += $(`pkg-config shiboken --libs`)
 LIBS += -L/media/z2/cpp/1105/Steel/Debug/ -lSteel
 LIBS += -L../qsteelwidget/build -lQSteelWidget
+LIBS += -L/usr/include/jsoncpp -ljsoncpp
 
 
 TARGET = build/PyQSteelWidget

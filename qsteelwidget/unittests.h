@@ -9,5 +9,6 @@
 #define UNITTESTS_H_
 
 void unitMain();
+void qt_ogre_conversions();
 
 #endif /* UNITTESTS_H_ */

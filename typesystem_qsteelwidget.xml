@@ -3,6 +3,8 @@
     <load-typesystem name="typesystem_core.xml" generate="no"/>
     <load-typesystem name="typesystem_gui.xml" generate="no"/>
     <load-typesystem name="typesystem_gui_common.xml" generate="no"/>
-    <object-type name="QSteelWidget"/>  
-    
+    <object-type name="QSteelWidget"/>
+    <container-type name="QVector2D" type="vector"/>
+    <container-type name="QVector3D" type="vector"/>
+    <container-type name="QVector4D" type="vector"/>
 </typesystem>
