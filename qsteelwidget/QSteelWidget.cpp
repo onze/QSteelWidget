@@ -62,8 +62,8 @@ void QSteelWidget::addResourceLocation(	QString path,
 {
 	if (mEngine == NULL)
 	{
-		quickLog("could not add resource location {path:" + path + ", type:"
-				+ type + ", res group:" + resGroup + "}.");
+		Debug::log("could not add resource location {path:")(convert(path));
+		Debug::log(", type:")(convert(type))(", res group:")(convert(resGroup))("}.").endl();
 	}
 	else
 	{
@@ -77,6 +77,7 @@ void QSteelWidget::addResourceLocation(	QString path,
 
 QVector3D QSteelWidget::cameraPosition()
 {
+//	Debug::log("mEngine->camera():")((int)mEngine->camera()).endl();
 	return convert(mEngine->camera()->camNode()->getPosition());
 }
 
@@ -103,7 +104,7 @@ unsigned long QSteelWidget::createAgent(QString meshName,
 	Debug::log("QSteelWidget::createAgent(meshName=")(meshName.toStdString());
 	Debug::log(" pos=")(QString("(x=%1, y=%2, z=%3)").arg(pos.x()).arg(pos.y()).arg(pos.z()).toStdString());
 	Debug::log(" rot=")(QString("(x=%1, y=%2, z=%3, w=%4)").arg(rot.x()).arg(rot.y()).arg(rot.z()).arg(rot.w()).toStdString());
-		Debug::log.endl();
+	Debug::log.endl();
 	if (mLevel == NULL)
 	{
 		quickLog("mLevel == NULL !");
@@ -228,7 +229,7 @@ void QSteelWidget::initSteel()
 
 void QSteelWidget::keyPressEvent(QKeyEvent *e)
 {
-	cout << "QSteelWidget::keyPressEvent" << endl;
+//	cout << "QSteelWidget::keyPressEvent" << endl;
 	if (mIsInputGrabbed)
 	{
 		OIS::KeyEvent evt = qtToOisKeyEvent(e);
@@ -239,7 +240,7 @@ void QSteelWidget::keyPressEvent(QKeyEvent *e)
 
 void QSteelWidget::keyReleaseEvent(QKeyEvent *e)
 {
-	cout << "QSteelWidget::keyReleaseEvent" << endl;
+//	cout << "QSteelWidget::keyReleaseEvent" << endl;
 	if (mIsInputGrabbed)
 	{
 		OIS::KeyEvent evt = qtToOisKeyEvent(e);
@@ -250,18 +251,30 @@ void QSteelWidget::keyReleaseEvent(QKeyEvent *e)
 		switch (e->key())
 		{
 		case Qt::Key_R:
+			if (e->modifiers() & Qt::ControlModifier)
+				break;
 			mTransformationMode = QSteelWidget::TM_ROTATION;
 			quickLog("QSteelWidget::keyReleaseEvent(): switched to rotation mode.");
 			break;
+
 		case Qt::Key_S:
+			if (e->modifiers() & Qt::ControlModifier)
+				break;
 			mTransformationMode = QSteelWidget::TM_SCALE;
 			quickLog("QSteelWidget::keyReleaseEvent(): switched to scale mode.");
 			break;
+
 		case Qt::Key_T:
+			if (e->modifiers() & Qt::ControlModifier)
+				break;
 			mTransformationMode = QSteelWidget::TM_TRANSLATION;
 			quickLog("QSteelWidget::keyReleaseEvent(): switched to translation mode.");
 			break;
+
 		case Qt::Key_Delete:
+			if (e->modifiers() & Qt::ControlModifier)
+				break;
+
 			if (mEngine->hasSelection())
 			{
 				quickLog("QSteelWidget::keyReleaseEvent(): deleting selection.");
@@ -274,9 +287,8 @@ void QSteelWidget::keyReleaseEvent(QKeyEvent *e)
 			}
 			else
 			{
-				quickLog("QSteelWidget::keyReleaseEvent(): no selection to delete.");
+				Debug::log("QSteelWidget::keyReleaseEvent(): no selection to delete.").endl();
 			}
-
 			break;
 		default:
 			break;
@@ -665,19 +677,22 @@ void QSteelWidget::saveCurrentLevel()
 
 void QSteelWidget::setLevel(QString projectRootdir, QString levelName)
 {
-	cout
-			<< (("QSteelWidget::setLevel(projectRootdir:" + projectRootdir
-					+ ", levelName=" + levelName + ")").toStdString()) << endl;
+	Debug::log("QSteelWidget::setLevel(projectRootdir:")(convert(projectRootdir));
+	Debug::log(", levelName=")(convert(levelName))(")").endl();
 	if (mEngine)
 	{
-		mEngine->setRootdir(Ogre::String(projectRootdir.toStdString().c_str()));
 		mLevel =
 				mEngine->createLevel(Ogre::String(levelName.toStdString().c_str()));
 	}
 	else
 	{
-		cout << "WARNING: there's no engine yet." << endl;
+		Debug::warning("WARNING: there's no engine yet.").endl();
 	}
+}
+
+void QSteelWidget::setRootDir(QString rootDir)
+{
+	mEngine->setRootDir(convert(rootDir));
 }
 
 void QSteelWidget::showEvent(QShowEvent *e)

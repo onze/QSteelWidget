@@ -33,11 +33,22 @@ public:
 	 */
 	void addResourceLocation(QString path, QString type, QString resGroup);
 	QVector3D agentPosition(unsigned long id);
+	QVector3D cameraPosition();
+	void cameraPosition(QVector3D pos);
+	QVector4D cameraRotation();
+	void cameraRotation(QVector4D rot);
 	///Instanciates a new Agent at the droping position. All required resources are expected to be ready.
 	unsigned long createAgent(	QString meshName,
 								QVector3D pos,
 								QVector4D rot,
 								bool involvesNewResources);
+	/**
+	 * returns the drop target (where the next object to  be instanciated will be placed).
+	 * @param delta: vector of shifting between the camera and the drop target
+	 * @return
+	 */
+	QVector3D dropTargetPosition(QVector3D delta);
+	QVector4D dropTargetRotation();
 	inline bool isSteelReady()
 	{
 		return mIsSteelReady;
@@ -70,16 +81,15 @@ public:
 	void removeResourceLocation(QString path, QString resGroup);
 	void saveCurrentLevel();
 	/**
-	 * sets the current level the widget is dealing with.
+	 * sets the current level the widget is dealing with. The level loads any previously saved data.
 	 * @param name: name of the level.
 	 */
 	void setLevel(QString projectRootdir, QString levelName);
-	QVector3D dropTargetPosition(QVector3D delta);
-	QVector4D dropTargetRotation();
-	QVector3D cameraPosition();
-	void cameraPosition(QVector3D pos);
-	QVector4D cameraRotation();
-	void cameraRotation(QVector4D rot);
+	/**
+	 * Tell steel where the top directory of the project is located.
+	 * @param rootDir path to that directory.
+	 */
+	void setRootDir(QString rootDir);
 
 public slots:
 	virtual void mouseMoveEvent(QMouseEvent *e);
