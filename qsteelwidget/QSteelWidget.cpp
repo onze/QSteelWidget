@@ -96,12 +96,24 @@ void QSteelWidget::cameraRotation(QVector4D rot)
 	mEngine->camera()->camNode()->setOrientation(convert(rot));
 }
 
-unsigned long QSteelWidget::createAgent(QString meshName,
-										QVector3D pos,
-										QVector4D rot,
-										bool involvesNewResources)
+unsigned long QSteelWidget::createAgent()
 {
-	Debug::log("QSteelWidget::createAgent(meshName=")(meshName.toStdString());
+
+	if (mLevel == NULL)
+	{
+		Debug::error("mLevel == NULL !").endl();
+		return Steel::INVALID_ID;
+	}
+	unsigned long aid = mLevel->newAgent();
+	return aid;
+}
+
+unsigned long QSteelWidget::createOgreModel(QString meshName,
+											QVector3D pos,
+											QVector4D rot,
+											bool involvesNewResources)
+{
+	Debug::log("QSteelWidget::createOgreModel(meshName=")(meshName.toStdString());
 	Debug::log(" pos=")(QString("(x=%1, y=%2, z=%3)").arg(pos.x()).arg(pos.y()).arg(pos.z()).toStdString());
 	Debug::log(" rot=")(QString("(x=%1, y=%2, z=%3, w=%4)").arg(rot.x()).arg(rot.y()).arg(rot.z()).arg(rot.w()).toStdString());
 	Debug::log.endl();
@@ -110,14 +122,14 @@ unsigned long QSteelWidget::createAgent(QString meshName,
 		quickLog("mLevel == NULL !");
 		return Steel::INVALID_ID;
 	}
-	Ogre::Quaternion r = mEngine->camera()->camNode()->getOrientation();
-	Steel::AgentId id = mLevel->newAgent(	convert(meshName),
-											convert(pos),
-											convert(rot),
-											involvesNewResources);
+//	Ogre::Quaternion r = mEngine->camera()->camNode()->getOrientation();
+	Steel::ModelId mid = mLevel->newOgreModel(	convert(meshName),
+												convert(pos),
+												convert(rot),
+												involvesNewResources);
 	update();
 	quickLog("");
-	return (unsigned long) id;
+	return (unsigned long) mid;
 }
 
 QVector3D QSteelWidget::dropTargetPosition(QVector3D delta)
@@ -295,6 +307,27 @@ void QSteelWidget::keyReleaseEvent(QKeyEvent *e)
 		}
 	}
 	e->accept();
+}
+
+bool QSteelWidget::linkAgentToOgreModel(unsigned long agentId,
+										unsigned long modelId)
+{
+#ifdef DEBUG
+	assert(mLevel!=NULL);
+#endif
+	return mLevel->linkAgentToModel((Steel::AgentId) agentId,
+									Steel::MT_OGRE,
+									(Steel::ModelId) modelId);
+}
+
+bool QSteelWidget::loadLevel()
+{
+	if(mLevel==NULL)
+	{
+		Debug::error("QSteelWidget::loadLevel(): level is still NULL").endl();
+		return false;
+	}
+	return mLevel->load();
 }
 
 void QSteelWidget::messageLogged(	const Ogre::String &message,
@@ -683,6 +716,7 @@ void QSteelWidget::setLevel(QString projectRootdir, QString levelName)
 	{
 		mLevel =
 				mEngine->createLevel(Ogre::String(levelName.toStdString().c_str()));
+		mLevel->load();
 	}
 	else
 	{

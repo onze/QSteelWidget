@@ -33,9 +33,9 @@ shared: qsteelwidgetpy/qsteelwidgetpy.pro qsteelwidgetpy/PyQSteelWidget/pyqsteel
 	cd qsteelwidgetpy && qmake && make
 	cp ./qsteelwidget/build/*.so* ./
 	cp ./qsteelwidgetpy/build/*.so* ./
-	cp ./*.so* $(WELD_HOME)/src
+	cp ./*.so* $(WELD_HOME)/src/plugins
 	ln -fs ./libPyQSteelWidget.so ./PyQSteelWidget.so
-	cd $(WELD_HOME)/src && ln -fs ./libPyQSteelWidget.so ./PyQSteelWidget.so
+	cd $(WELD_HOME)/src/plugins && ln -fs ./libPyQSteelWidget.so ./PyQSteelWidget.so
 	echo "done"
 
 clean:

@@ -37,8 +37,16 @@ public:
 	void cameraPosition(QVector3D pos);
 	QVector4D cameraRotation();
 	void cameraRotation(QVector4D rot);
-	///Instanciates a new Agent at the droping position. All required resources are expected to be ready.
-	unsigned long createAgent(	QString meshName,
+	/**
+	 * creates an empty agent. returns its id.
+	 */
+	unsigned long createAgent();
+
+	/**
+	 * Instanciates a new OgreModel at the droping position. All required resources are expected to be ready.
+	 * Returns a model id.
+	 */
+	unsigned long createOgreModel(	QString meshName,
 								QVector3D pos,
 								QVector4D rot,
 								bool involvesNewResources);
@@ -73,6 +81,12 @@ public:
 								bool maskDebug,
 								const Ogre::String &logName);
 	void closeEvent(QCloseEvent *e);
+	bool linkAgentToOgreModel(unsigned long agentId, unsigned long modelId);
+	/**
+	 * Simple trigger to make the current level (assumed to already be instanciated) load anything
+	 * it can from a save file.
+	 */
+	bool loadLevel();
 	/**
 	 * removes the location from the resource group from ogre resourceManager.
 	 * @param path
