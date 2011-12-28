@@ -100,15 +100,22 @@ public:
 	bool linkAgentToOgreModel(unsigned long agentId, unsigned long modelId);
 
 	/**
-	 * Simple trigger to make the current level (assumed to already be instanciated) load anything
+	 * Simple trigger to make the current level (assumed to already be instantiated) load anything
 	 * it can from a save file.
 	 */
 	bool loadLevel();
 
 	/**
-	 * takes an ogre model id and returns its json seralisation as a qstring.
+	 * Modifies an OgreModel according to the given modified json serialisation of it.
+	 * @param mid the ogre model id
+	 * @param json the json seralisation string
+	 * @return true is the model was able to deserialise the string and found all required data in it.
 	 */
-	QString ogreModelJson(Steel::ModelId mid);
+	bool ogreModelFromJson(Steel::ModelId mid, QString qjson);
+	/**
+	 * takes an ogre model id and returns its json serialisation as a qstring.
+	 */
+	QString ogreModelToJson(Steel::ModelId mid);
 
 	/**
 	 * removes the location from the resource group from ogre resourceManager.

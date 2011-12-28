@@ -347,17 +347,53 @@ void QSteelWidget::moveEvent(QMoveEvent *e)
 	}
 }
 
-QString QSteelWidget::ogreModelJson(Steel::ModelId mid)
+bool QSteelWidget::ogreModelFromJson(Steel::ModelId mid, QString qjson)
 {
-	Steel::OgreModel *mm=mLevel->ogreModelMan()->at(mid);
-	if (mm==NULL)
+	Steel::OgreModelManager *mm = mLevel->ogreModelMan();
+	if (mm == NULL)
 	{
-		Debug::warning("in QSteelWidget::ogreModelJson(mid=")(mid)("):");
+		Debug::warning("in QSteelWidget::ogreModelFromJson(): mid=")(mid)(", json=").endl();
+		Debug::warning(convert(qjson)).endl();
+		Debug::warning("model manager doesn't exits.").endl();
+		return false;
+	}
+
+	Steel::OgreModel *om = mm->at(mid);
+	if (om == NULL)
+	{
+		Debug::warning("in QSteelWidget::ogreModelFromJson(): mid=")(mid)(", json=").endl();
+		Debug::warning(convert(qjson)).endl();
+		Debug::warning("model doesn't exits.").endl();
+		return false;
+	}
+
+	Json::Reader reader;
+	Json::Value root;
+	bool parsingOk = reader.parse(qjson.toStdString(), root, false);
+	if (!parsingOk)
+	{
+		Debug::warning("in QSteelWidget::ogreModelFromJson(): mid=")(mid)(", json=").endl();
+		Debug::warning(convert(qjson)).endl();
+		Debug::error(reader.getFormattedErrorMessages()).endl();
+		return false;
+	}
+	bool r = om->fromJson(root, mLevel->levelRoot(), mLevel->sceneManager());
+	if (r)
+		update();
+	return r;
+}
+
+QString QSteelWidget::ogreModelToJson(Steel::ModelId mid)
+{
+	Steel::OgreModel *m = mLevel->ogreModelMan()->at(mid);
+	if (m == NULL)
+	{
+		Debug::warning("in QSteelWidget::ogreModelToJson(mid=")(mid)("):");
 		Debug::warning("model doesn't exits.").endl();
 		return QString("error retrieving data. See log for details.");
 	}
 	Json::Value node;
-	mm->toJson(node);
+	m->toJson(node);
 	return convert(node.toStyledString());
 }
 
@@ -524,7 +560,7 @@ void QSteelWidget::mouseDoubleClickEvent(QMouseEvent *e)
 
 void QSteelWidget::mouseMoveEvent(QMouseEvent *e)
 {
-	QPoint move = e->pos() - mLastMousePosition;
+//	QPoint move = e->pos() - mLastMousePosition;
 
 	if (mIsInputGrabbed)
 	{
