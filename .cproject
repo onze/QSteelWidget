@@ -27,6 +27,7 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/Steel/Steel/include}&quot;"/>
 									<listOptionValue builtIn="false" value="/media/z2/src/ogre/OgreMain/include"/>
 									<listOptionValue builtIn="false" value="/usr/include/qt4/Qt"/>
+									<listOptionValue builtIn="false" value="/usr/include/qt4"/>
 								</option>
 								<option id="gnu.cpp.compiler.option.include.files.1008742585" name="Include files (-include)" superClass="gnu.cpp.compiler.option.include.files"/>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.1909790010" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
