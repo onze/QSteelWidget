@@ -1,4 +1,4 @@
--- this project has been abandonned to the high maintenance it needed, and due to Steel dropping Qt as a UI solution.
+-- this project has been abandoned to the high maintenance it needed, and due to Steel dropping Qt as a UI solution.
 
 QSteelWidget is a c++ Qt QWidget sublass that embeds the Steel engine and offers methods to acces its API.
 
